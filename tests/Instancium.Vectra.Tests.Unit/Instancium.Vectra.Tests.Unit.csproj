@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
+    <ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 

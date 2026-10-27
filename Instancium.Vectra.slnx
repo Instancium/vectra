@@ -10,6 +10,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Instancium.Vectra.Tests.Arch/Instancium.Vectra.Tests.Arch.csproj" />
+    <Project Path="tests/Instancium.Vectra.Tests.Integration/Instancium.Vectra.Tests.Integration.csproj" Id="172f5563-3259-4269-aa30-27be424353e6" />
     <Project Path="tests/Instancium.Vectra.Tests.Unit/Instancium.Vectra.Tests.Unit.csproj" />
   </Folder>
 </Solution>
