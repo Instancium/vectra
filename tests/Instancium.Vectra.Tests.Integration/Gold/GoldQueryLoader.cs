@@ -1,45 +1,43 @@
-namespace Instancium.Vectra.Tests.Integration.Gold;
+﻿namespace Instancium.Vectra.Tests.Integration.Gold;
 
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using Instancium.Vectra.Core.Models;
 
 public static class GoldQueryLoader
 {
-    public static IReadOnlyList<GoldQuery> Load(string relativePath = "gold/queries.json")
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, relativePath);
+    private const string DefaultRelativePath = "gold/queries.json";
 
-        if (!File.Exists(path))
+    public static IReadOnlyList<GoldQuery> Load(string? path = null)
+    {
+        string resolved = Path.Combine(AppContext.BaseDirectory, path ?? DefaultRelativePath);
+        if (!File.Exists(resolved))
         {
-            throw new FileNotFoundException($"Gold query file not found: {path}", path);
+            throw new FileNotFoundException($"Gold query set not found at '{resolved}'.", resolved);
         }
 
-        var json = File.ReadAllText(path);
-        var queries = JsonSerializer.Deserialize<List<GoldQuery>>(json, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
-
+        string json = File.ReadAllText(resolved);
+        List<GoldQuery>? queries = JsonSerializer.Deserialize<List<GoldQuery>>(
+            json,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (queries is null || queries.Count == 0)
         {
-            throw new InvalidOperationException("Gold query file is empty.");
+            throw new InvalidDataException($"Gold query set at '{resolved}' is empty or malformed.");
         }
 
-        foreach (var query in queries)
+        foreach (GoldQuery query in queries)
         {
             if (string.IsNullOrWhiteSpace(query.Query))
             {
-                throw new InvalidOperationException("Gold query text cannot be empty.");
+                throw new InvalidDataException($"Gold query set at '{resolved}' contains an empty query text.");
             }
 
-            if (query.ExpectedPageFrom <= 0 || query.ExpectedPageTo <= 0)
+            if (query.ExpectedPageFrom <= 0 || query.ExpectedPageTo < query.ExpectedPageFrom)
             {
-                throw new InvalidOperationException($"Gold query '{query.Query}' has invalid page bounds.");
-            }
-
-            if (query.ExpectedPageFrom > query.ExpectedPageTo)
-            {
-                throw new InvalidOperationException($"Gold query '{query.Query}' has start page greater than end page.");
+                throw new InvalidOperationException(
+                    $"Gold query '{query.Query}' has invalid page bounds [{query.ExpectedPageFrom}..{query.ExpectedPageTo}].");
             }
         }
 

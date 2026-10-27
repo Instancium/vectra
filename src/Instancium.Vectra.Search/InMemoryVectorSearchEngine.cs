@@ -13,10 +13,12 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
     }
 
-    public Task<IReadOnlyList<SearchResult>> SearchAsync(ReadOnlyMemory<float> queryVector, int topK, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<SearchResult>> SearchAsync(
+        ReadOnlyMemory<float> queryVector,
+        int topK,
+        CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(topK, 1);
-
         if (queryVector.Length == 0)
         {
             throw new ArgumentException("Query vector cannot be empty.", nameof(queryVector));
@@ -29,22 +31,22 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
 
         if (queryVector.Length != _vectorStore.Dimension)
         {
-            throw new ArgumentException($"Query dimension mismatch. Expected {_vectorStore.Dimension} but received {queryVector.Length}.", nameof(queryVector));
+            throw new ArgumentException(
+                $"Query dimension mismatch. Expected {_vectorStore.Dimension} but received {queryVector.Length}.",
+                nameof(queryVector));
         }
 
-        var metadata = _vectorStore.GetMetadata();
-        var vectors = _vectorStore.GetVectorsSpan();
+        IReadOnlyList<ChunkMetadata> metadata = _vectorStore.GetMetadata();
+        ReadOnlySpan<float> vectors = _vectorStore.GetVectorsSpan();
+        int dimension = _vectorStore.Dimension;
         var heap = new PriorityQueue<SearchCandidate, float>();
 
-        for (var index = 0; index < metadata.Count; index++)
+        for (int index = 0; index < metadata.Count; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var item = metadata[index];
-            var offset = index * _vectorStore.Dimension;
-            var score = ComputeDotProduct(queryVector.Span, vectors.Slice(offset, _vectorStore.Dimension));
-            var candidate = new SearchCandidate(item.ChunkId, item.FileId, score, item.Snippet);
-
+            int offset = index * dimension;
+            float score = ComputeDotProduct(queryVector.Span, vectors.Slice(offset, dimension));
+            var candidate = new SearchCandidate(index, score);
             if (heap.Count < topK)
             {
                 heap.Enqueue(candidate, candidate.Score);
@@ -60,35 +62,45 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
             heap.Enqueue(candidate, candidate.Score);
         }
 
-        var result = heap.UnorderedItems
+        List<SearchCandidate> ordered = heap.UnorderedItems
             .OrderByDescending(item => item.Element.Score)
-            .Select(item => new SearchResult(item.Element.ChunkId, item.Element.FileId, item.Element.Score, item.Element.Snippet, ReadOnlyMemory<float>.Empty))
+            .Select(item => item.Element)
             .ToList();
 
-        return Task.FromResult<IReadOnlyList<SearchResult>>(result);
+        var results = new List<SearchResult>(ordered.Count);
+        foreach (SearchCandidate candidate in ordered)
+        {
+            ChunkMetadata meta = metadata[candidate.Index];
+            int offset = candidate.Index * dimension;
+            results.Add(new SearchResult(
+                meta.ChunkId,
+                meta.FileId,
+                meta.PageNumber,
+                candidate.Score,
+                meta.Snippet,
+                vectors.Slice(offset, dimension).ToArray()));
+        }
+
+        return Task.FromResult<IReadOnlyList<SearchResult>>(results);
     }
 
     private static float ComputeDotProduct(ReadOnlySpan<float> left, ReadOnlySpan<float> right)
     {
-        var sum = 0f;
-
+        float sum = 0f;
         if (Vector.IsHardwareAccelerated && left.Length >= Vector<float>.Count)
         {
-            var vectorLength = left.Length - (left.Length % Vector<float>.Count);
-            var acc = Vector<float>.Zero;
-
-            for (var index = 0; index < vectorLength; index += Vector<float>.Count)
+            int vectorLength = left.Length - (left.Length % Vector<float>.Count);
+            var accumulator = Vector<float>.Zero;
+            for (int index = 0; index < vectorLength; index += Vector<float>.Count)
             {
-                var leftVector = new Vector<float>(left.Slice(index, Vector<float>.Count));
-                var rightVector = new Vector<float>(right.Slice(index, Vector<float>.Count));
-                acc += leftVector * rightVector;
+                accumulator += new Vector<float>(left.Slice(index, Vector<float>.Count))
+                               * new Vector<float>(right.Slice(index, Vector<float>.Count));
             }
 
-            sum += Vector.Sum(acc);
+            sum += Vector.Sum(accumulator);
         }
 
-        var tailStart = left.Length - (left.Length % Vector<float>.Count);
-        for (var index = tailStart; index < left.Length; index++)
+        for (int index = left.Length - (left.Length % Vector<float>.Count); index < left.Length; index++)
         {
             sum += left[index] * right[index];
         }
@@ -96,5 +108,5 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
         return sum;
     }
 
-    private sealed record SearchCandidate(long ChunkId, long FileId, float Score, string Snippet);
+    private sealed record SearchCandidate(int Index, float Score);
 }

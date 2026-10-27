@@ -1,3 +1,5 @@
+// tests/Instancium.Vectra.Tests.Unit/Indexing/IndexingPipelineTests.cs
+#nullable enable
 namespace Instancium.Vectra.Tests.Unit.Indexing;
 
 using System.Collections.Generic;
@@ -9,6 +11,9 @@ using InstantAIGate.Core.Interfaces.Inference;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
+using Instancium.Vectra.Indexing.Chunking;
+using Instancium.Vectra.Indexing.DependencyInjection;
+using Instancium.Vectra.Indexing.Extraction;
 using Instancium.Vectra.Indexing.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,10 +25,11 @@ public sealed class IndexingPipelineTests
     [Fact]
     public async Task IndexingPipeline_ShouldCallExtractorChunkerEngineStoreInOrder()
     {
-        var extractor = new StubTextExtractor();
-        var chunker = new StubTextChunker();
-        var engine = new StubInferenceEngine();
-        var store = new StubVectorStore();
+        var recorder = new PipelineSequenceRecorder();
+        var extractor = new StubTextExtractor(recorder);
+        var chunker = new StubTextChunker(recorder);
+        var engine = new StubInferenceEngine(recorder);
+        var store = new StubVectorStore(recorder);
         var pipeline = new IndexingPipeline(
             extractor,
             chunker,
@@ -44,23 +50,45 @@ public sealed class IndexingPipelineTests
         Assert.Equal(1, extractor.Calls);
         Assert.Equal(1, chunker.Calls);
         Assert.Equal(1, engine.DimensionCalls);
-        Assert.Equal(4, engine.GenerateCalls);  
-        Assert.Equal(4, store.UpsertCalls);     
+        Assert.Equal(4, engine.GenerateCalls);
+        Assert.Equal(4, store.UpsertCalls);
         Assert.Equal(4, result.Metrics.TotalChunks);
+        Assert.Equal(new long[] { 1, 2, 3, 4 }, store.UpsertedChunkIds.OrderBy(id => id).ToArray());
+
+        List<string> sequence = recorder.Snapshot().ToList();
+        
+
+
+        Assert.Equal("dimension", sequence[0]);
+        Assert.Equal("extract", sequence[1]);
+        Assert.Equal("chunk", sequence[2]);
+
+        List<string> embedded = sequence.Where(e => e.StartsWith("embed:", StringComparison.Ordinal)).ToList();
+        List<string> upserted = sequence.Where(e => e.StartsWith("upsert:", StringComparison.Ordinal)).ToList();
+        Assert.Equal(4, embedded.Count);
+        Assert.Equal(4, upserted.Count);
+        Assert.Equal(
+            embedded.Select(e => e["embed:".Length..]).OrderBy(t => t, StringComparer.Ordinal).ToArray(),
+            upserted.Select(u => u["upsert:".Length..]).OrderBy(t => t, StringComparer.Ordinal).ToArray());
+
+
+        foreach (string text in embedded.Select(e => e["embed:".Length..]))
+        {
+            int embedPosition = sequence.IndexOf($"embed:{text}");
+            int upsertPosition = sequence.IndexOf($"upsert:{text}");
+            Assert.True(embedPosition >= 0 && upsertPosition > embedPosition, $"Upsert preceded its embedding for '{text}'.");
+        }
     }
 
     [Fact]
     public async Task IndexingPipeline_ShouldThrowIndexingFailedException_WhenGatewayNotReady()
     {
-        var extractor = new StubTextExtractor();
-        var chunker = new StubTextChunker();
-        var engine = new StubInferenceEngine(readyDimension: 0);
-        var store = new StubVectorStore();
+        var recorder = new PipelineSequenceRecorder();
         var pipeline = new IndexingPipeline(
-            extractor,
-            chunker,
-            engine,
-            store,
+            new StubTextExtractor(recorder),
+            new StubTextChunker(recorder),
+            new StubInferenceEngine(recorder, readyDimension: 0),
+            new StubVectorStore(recorder),
             NullLogger<IndexingPipeline>.Instance);
 
         var request = new IndexingPipelineRequest("sample.pdf", 1, 1, "repo-test");
@@ -71,15 +99,13 @@ public sealed class IndexingPipelineTests
     [Fact]
     public async Task IndexingPipeline_ShouldRespectMaxParallelEmbeddings()
     {
-        var extractor = new StubTextExtractor();
-        var chunker = new StubTextChunker();
-        var engine = new StubInferenceEngine();
-        var store = new StubVectorStore();
+        var recorder = new PipelineSequenceRecorder();
+        var engine = new StubInferenceEngine(recorder, embeddingDelayMs: 20);
         var pipeline = new IndexingPipeline(
-            extractor,
-            chunker,
+            new StubTextExtractor(recorder),
+            new StubTextChunker(recorder),
             engine,
-            store,
+            new StubVectorStore(recorder),
             NullLogger<IndexingPipeline>.Instance);
 
         var request = new IndexingPipelineRequest(
@@ -89,9 +115,12 @@ public sealed class IndexingPipelineTests
             "repo-test",
             maxParallelEmbeddings: 3);
 
-        await pipeline.RunAsync(request);
+        var result = await pipeline.RunAsync(request);
 
-        Assert.Equal(3, engine.MaxParallelDegreeObserved);
+        Assert.Equal(6, engine.GenerateCalls);
+        Assert.Equal(6, result.Metrics.TotalChunks);
+        Assert.True(engine.MaxParallelDegreeObserved <= 3, $"Parallelism limit violated: observed {engine.MaxParallelDegreeObserved}.");
+        Assert.True(engine.MaxParallelDegreeObserved >= 2, $"Expected concurrent embeddings, observed {engine.MaxParallelDegreeObserved}.");
     }
 
     [Fact]
@@ -104,44 +133,93 @@ public sealed class IndexingPipelineTests
     }
 
     [Fact]
-    public void ServiceCollectionExtensions_ShouldRegisterPipelineComponents()
+    public void AddVectraIndexing_ShouldRegisterCoreComponentsWithoutExternalContracts()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IInferenceEngine>(new StubInferenceEngine());
-        services.AddSingleton<IVectorStore>(new StubVectorStore());
-        services.AddSingleton<ITextExtractor>(new StubTextExtractor());
-        services.AddSingleton<ITextChunker>(new StubTextChunker());
+        services.AddVectraIndexing();
 
-        var provider = services.BuildServiceProvider();
+        Assert.DoesNotContain(services, sd => sd.ServiceType == typeof(IInferenceEngine));
+        Assert.DoesNotContain(services, sd => sd.ServiceType == typeof(IVectorStore));
 
-        var extractor = provider.GetRequiredService<ITextExtractor>();
-        var chunker = provider.GetRequiredService<ITextChunker>();
+        Assert.Contains(services, sd => sd.ServiceType == typeof(ITextExtractor));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(ITextChunker));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IIndexingPipeline));
+    }
 
-        Assert.NotNull(extractor);
-        Assert.NotNull(chunker);
+    [Fact]
+    public void AddVectraIndexing_ShouldResolvePipelineWhenContractsProvided()
+    {
+        var recorder = new PipelineSequenceRecorder();
+        var services = new ServiceCollection();
+        services.AddSingleton<IInferenceEngine>(new StubInferenceEngine(recorder));
+        services.AddSingleton<IVectorStore>(new StubVectorStore(recorder));
+        services.AddVectraIndexing();
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.IsType<IndexingPipeline>(provider.GetRequiredService<IIndexingPipeline>());
+    }
+
+    internal sealed class PipelineSequenceRecorder
+    {
+        private readonly object _sync = new();
+        private readonly List<string> _events = new();
+
+        public void Record(string stage)
+        {
+            lock (_sync)
+            {
+                _events.Add(stage);
+            }
+        }
+
+        public IReadOnlyList<string> Snapshot()
+        {
+            lock (_sync)
+            {
+                return _events.ToArray();
+            }
+        }
     }
 
     private sealed class StubTextExtractor : ITextExtractor
     {
-        public int Calls { get; private set; }
+        private readonly PipelineSequenceRecorder _recorder;
+        private int _calls;
+
+        public StubTextExtractor(PipelineSequenceRecorder recorder) => _recorder = recorder;
+
+        public int Calls => Volatile.Read(ref _calls);
 
         public Task<IReadOnlyList<PageText>> ExtractAsync(TextExtractionRequest request, CancellationToken cancellationToken = default)
         {
-            Calls++;
-            return Task.FromResult<IReadOnlyList<PageText>>([
-                new PageText(1, "alpha beta gamma"),
-                new PageText(2, "delta epsilon zeta")
-            ]);
+            Interlocked.Increment(ref _calls);
+            _recorder.Record("extract");
+            int pageCount = request.PageTo - request.PageFrom + 1;
+            var pages = new List<PageText>(pageCount);
+            for (int i = 0; i < pageCount; i++)
+            {
+                int pageNumber = request.PageFrom + i;
+                pages.Add(new PageText(pageNumber, $"page-{pageNumber}-text alpha beta gamma"));
+            }
+
+            return Task.FromResult<IReadOnlyList<PageText>>(pages);
         }
     }
 
     private sealed class StubTextChunker : ITextChunker
     {
-        public int Calls { get; private set; }
+        private readonly PipelineSequenceRecorder _recorder;
+        private int _calls;
+
+        public StubTextChunker(PipelineSequenceRecorder recorder) => _recorder = recorder;
+
+        public int Calls => Volatile.Read(ref _calls);
 
         public IReadOnlyList<TextChunk> Chunk(IReadOnlyList<PageText> pages, string sourceFile)
         {
-            Calls++;
+            Interlocked.Increment(ref _calls);
+            _recorder.Record("chunk");
             return pages
                 .SelectMany(page => new[]
                 {
@@ -154,35 +232,40 @@ public sealed class IndexingPipelineTests
 
     private sealed class StubInferenceEngine : IInferenceEngine
     {
+        private readonly PipelineSequenceRecorder _recorder;
         private readonly int _readyDimension;
+        private readonly int _embeddingDelayMs;
+        private int _dimensionCalls;
+        private int _generateCalls;
         private int _inFlight;
+        private int _maxParallelObserved;
 
-        public int DimensionCalls { get; private set; }
-
-        public int GenerateCalls { get; private set; }
-
-        public int MaxParallelDegreeObserved { get; private set; }
-
-        public StubInferenceEngine(int readyDimension = 4)
+        public StubInferenceEngine(PipelineSequenceRecorder recorder, int readyDimension = 4, int embeddingDelayMs = 10)
         {
+            _recorder = recorder;
             _readyDimension = readyDimension;
+            _embeddingDelayMs = embeddingDelayMs;
         }
+
+        public int DimensionCalls => Volatile.Read(ref _dimensionCalls);
+        public int GenerateCalls => Volatile.Read(ref _generateCalls);
+        public int MaxParallelDegreeObserved => Volatile.Read(ref _maxParallelObserved);
 
         public Task<int> GetEmbeddingDimensionAsync(string modelId, CancellationToken ct = default)
         {
-            DimensionCalls++;
+            Interlocked.Increment(ref _dimensionCalls);
+            _recorder.Record("dimension");
             return Task.FromResult(_readyDimension);
         }
 
         public async Task<EmbeddingResponse> GenerateEmbeddingsAsync(string modelId, EmbeddingRequest request, CancellationToken ct = default)
         {
-            GenerateCalls++;
-            var currentInFlight = Interlocked.Increment(ref _inFlight);
-            MaxParallelDegreeObserved = Math.Max(MaxParallelDegreeObserved, currentInFlight);
-            await Task.Delay(10, ct);
+            Interlocked.Increment(ref _generateCalls);
+            ObserveConcurrency();
+            _recorder.Record($"embed:{request.Text}");
+            await Task.Delay(_embeddingDelayMs, ct);
             Interlocked.Decrement(ref _inFlight);
-
-            var vector = new[] { 0.1f, 0.2f, 0.3f, 0.4f };
+            float[] vector = { 0.1f, 0.2f, 0.3f, 0.4f };
             return new EmbeddingResponse(vector, vector.Length, vector.Length);
         }
 
@@ -192,25 +275,82 @@ public sealed class IndexingPipelineTests
         public Task<string> ApplyChatTemplateAsync(string modelId, IEnumerable<ChatMessage> messages, CancellationToken ct = default)
             => throw new NotSupportedException();
 
-        public IAsyncEnumerable<string> StreamDeltaGenerationAsync(string sessionId, ChatMessage deltaMessage, InferenceSettings? overrideSettings = null, CancellationToken ct = default)
+        public IAsyncEnumerable<string> StreamDeltaGenerationAsync(
+            string sessionId,
+            ChatMessage deltaMessage,
+            InferenceSettings? overrideSettings = null,
+            CancellationToken ct = default)
             => throw new NotSupportedException();
+
+        private void ObserveConcurrency()
+        {
+            int current = Interlocked.Increment(ref _inFlight);
+            int observed;
+            while (current > (observed = Volatile.Read(ref _maxParallelObserved)))
+            {
+                if (Interlocked.CompareExchange(ref _maxParallelObserved, current, observed) == observed)
+                {
+                    break;
+                }
+            }
+        }
     }
 
     private sealed class StubVectorStore : IVectorStore
     {
-        public int UpsertCalls { get; private set; }
+        private readonly PipelineSequenceRecorder _recorder;
+        private readonly object _sync = new();
+        private readonly List<ChunkMetadata> _metadata = new();
+        private readonly List<long> _chunkIds = new();
+        private int _upsertCalls;
 
-        public int Count => 0;
+        public StubVectorStore(PipelineSequenceRecorder recorder) => _recorder = recorder;
+
+        public int UpsertCalls => Volatile.Read(ref _upsertCalls);
+
+        public long[] UpsertedChunkIds
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _chunkIds.ToArray();
+                }
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _metadata.Count;
+                }
+            }
+        }
 
         public int Dimension => 4;
 
         public ReadOnlySpan<float> GetVectorsSpan() => ReadOnlySpan<float>.Empty;
 
-        public IReadOnlyList<ChunkMetadata> GetMetadata() => Array.Empty<ChunkMetadata>();
+        public IReadOnlyList<ChunkMetadata> GetMetadata()
+        {
+            lock (_sync)
+            {
+                return _metadata.ToArray();
+            }
+        }
 
         public void Upsert(long chunkId, long fileId, int pageNumber, string snippet, ReadOnlyMemory<float> vector)
         {
-            UpsertCalls++;
+            Interlocked.Increment(ref _upsertCalls);
+            _recorder.Record($"upsert:{snippet}");
+            lock (_sync)
+            {
+                _metadata.Add(new ChunkMetadata(chunkId, fileId, pageNumber, snippet));
+                _chunkIds.Add(chunkId);
+            }
         }
     }
 }

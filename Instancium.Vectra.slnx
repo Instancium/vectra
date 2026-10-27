@@ -6,7 +6,6 @@
     <Project Path="src/Instancium.Vectra.Infrastructure/Instancium.Vectra.Infrastructure.csproj" />
     <Project Path="src/Instancium.Vectra.Search/Instancium.Vectra.Search.csproj" />
     <Project Path="src/Instancium.Vectra.Storage/Instancium.Vectra.Storage.csproj" />
-    <Project Path="src/Instancium.Vectra.Worker/Instancium.Vectra.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Instancium.Vectra.Tests.Arch/Instancium.Vectra.Tests.Arch.csproj" />

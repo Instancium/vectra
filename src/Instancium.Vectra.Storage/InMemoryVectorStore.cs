@@ -1,23 +1,26 @@
+// src/Instancium.Vectra.Storage/InMemoryVectorStore.cs
+#nullable enable
 namespace Instancium.Vectra.Storage;
 
-using System.Threading;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 
 public sealed class InMemoryVectorStore : IVectorStore
 {
+    private readonly object _sync = new();
     private readonly List<ChunkMetadata> _metadata = new();
-    private readonly object _syncRoot = new();
+    private readonly Dictionary<long, int> _chunkIdToIndex = new();
     private float[] _vectors = Array.Empty<float>();
+    private int _count;
     private int _dimension;
 
     public int Count
     {
         get
         {
-            lock (_syncRoot)
+            lock (_sync)
             {
-                return _metadata.Count;
+                return _count;
             }
         }
     }
@@ -26,25 +29,41 @@ public sealed class InMemoryVectorStore : IVectorStore
     {
         get
         {
-            lock (_syncRoot)
+            lock (_sync)
             {
                 return _dimension;
             }
         }
     }
 
+    public ReadOnlySpan<float> GetVectorsSpan()
+    {
+        lock (_sync)
+        {
+            return _vectors.AsSpan(0, _count * _dimension);
+        }
+    }
+
+    public IReadOnlyList<ChunkMetadata> GetMetadata()
+    {
+        lock (_sync)
+        {
+            return _metadata.ToArray();
+        }
+    }
+
     public void Upsert(long chunkId, long fileId, int pageNumber, string snippet, ReadOnlyMemory<float> vector)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(snippet);
+        ArgumentOutOfRangeException.ThrowIfLessThan(chunkId, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(fileId, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-        ArgumentNullException.ThrowIfNull(vector);
-
         if (vector.Length == 0)
         {
             throw new ArgumentException("Vector cannot be empty.", nameof(vector));
         }
 
-        lock (_syncRoot)
+        lock (_sync)
         {
             if (_dimension == 0)
             {
@@ -52,54 +71,29 @@ public sealed class InMemoryVectorStore : IVectorStore
             }
             else if (_dimension != vector.Length)
             {
-                throw new ArgumentException($"Vector dimension mismatch. Expected {_dimension}, received {vector.Length}.", nameof(vector));
+                throw new ArgumentException(
+                    $"Dimension mismatch: store uses {_dimension} but received {vector.Length}.",
+                    nameof(vector));
             }
 
-            var metadata = new ChunkMetadata(chunkId, fileId, pageNumber, snippet);
-            var index = _metadata.FindIndex(item => item.ChunkId == chunkId);
-
-            if (index >= 0)
+            if (_chunkIdToIndex.TryGetValue(chunkId, out int existingIndex))
             {
-                _metadata[index] = metadata;
-
-                var offset = index * _dimension;
-                vector.Span.CopyTo(_vectors.AsSpan(offset, _dimension));
-                return;
+                vector.Span.CopyTo(_vectors.AsSpan(existingIndex * _dimension, _dimension));
+                _metadata[existingIndex] = new ChunkMetadata(chunkId, fileId, pageNumber, snippet);
             }
-
-            var requiredCapacity = (_metadata.Count + 1) * _dimension;
-            if (_vectors.Length < requiredCapacity)
+            else
             {
-                var newCapacity = _vectors.Length == 0 ? Math.Max(_dimension, 64) : _vectors.Length;
-                while (newCapacity < requiredCapacity)
+                int requiredLength = (_count + 1) * _dimension;
+                if (_vectors.Length < requiredLength)
                 {
-                    newCapacity *= 2;
+                    Array.Resize(ref _vectors, Math.Max(requiredLength, _vectors.Length * 2));
                 }
 
-                var resized = new float[newCapacity];
-                _vectors.CopyTo(resized, 0);
-                _vectors = resized;
+                vector.Span.CopyTo(_vectors.AsSpan(_count * _dimension, _dimension));
+                _metadata.Add(new ChunkMetadata(chunkId, fileId, pageNumber, snippet));
+                _chunkIdToIndex[chunkId] = _count;
+                _count++;
             }
-
-            var insertOffset = _metadata.Count * _dimension;
-            vector.Span.CopyTo(_vectors.AsSpan(insertOffset, _dimension));
-            _metadata.Add(metadata);
-        }
-    }
-
-    public ReadOnlySpan<float> GetVectorsSpan()
-    {
-        lock (_syncRoot)
-        {
-            return _vectors.AsSpan(0, _metadata.Count * _dimension);
-        }
-    }
-
-    public IReadOnlyList<ChunkMetadata> GetMetadata()
-    {
-        lock (_syncRoot)
-        {
-            return _metadata.ToArray();
         }
     }
 }

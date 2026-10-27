@@ -1,141 +1,28 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" />
-    <ProjectReference Include="..\Instancium.Vectra.Tests.Integration\Instancium.Vectra.Tests.Integration.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
+﻿<!-- tests/Instancium.Vectra.Tests.Unit/Instancium.Vectra.Tests.Unit.csproj -->
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="6.0.4" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
 </Project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
