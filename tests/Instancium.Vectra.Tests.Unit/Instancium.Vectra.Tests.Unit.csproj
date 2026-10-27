@@ -20,13 +20,11 @@
     <ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
     <ProjectReference Include="..\..\src\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" />
+    <ProjectReference Include="..\Instancium.Vectra.Tests.Integration\Instancium.Vectra.Tests.Integration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\assets\pdf\sample-2pages.pdf"
-          Condition="Exists('..\assets\pdf\sample-2pages.pdf')"
-          Link="assets\pdf\sample-2pages.pdf"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

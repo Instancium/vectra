@@ -1,0 +1,16 @@
+[
+  { "Query": "What is a pressure transmitter?", "ExpectedPageFrom": 15, "ExpectedPageTo": 20 },
+  { "Query": "How does a thermocouple work?", "ExpectedPageFrom": 42, "ExpectedPageTo": 48 },
+  { "Query": "What is a control valve?", "ExpectedPageFrom": 30, "ExpectedPageTo": 35 },
+  { "Query": "What is a flow meter?", "ExpectedPageFrom": 25, "ExpectedPageTo": 30 },
+  { "Query": "How does a level transmitter work?", "ExpectedPageFrom": 50, "ExpectedPageTo": 58 },
+  { "Query": "What is a differential pressure transmitter?", "ExpectedPageFrom": 18, "ExpectedPageTo": 24 },
+  { "Query": "How is a pH sensor calibrated?", "ExpectedPageFrom": 60, "ExpectedPageTo": 68 },
+  { "Query": "What is a PLC?", "ExpectedPageFrom": 10, "ExpectedPageTo": 16 },
+  { "Query": "How does a temperature sensor work?", "ExpectedPageFrom": 35, "ExpectedPageTo": 40 },
+  { "Query": "What is a RTD sensor?", "ExpectedPageFrom": 40, "ExpectedPageTo": 45 },
+  { "Query": "What is a solenoid valve?", "ExpectedPageFrom": 48, "ExpectedPageTo": 52 },
+  { "Query": "How does a vibration sensor work?", "ExpectedPageFrom": 70, "ExpectedPageTo": 80 },
+  { "Query": "What is a loop-powered transmitter?", "ExpectedPageFrom": 12, "ExpectedPageTo": 18 },
+  { "Query": "What is a magnetic flow meter?", "ExpectedPageFrom": 22, "ExpectedPageTo": 28 }
+]

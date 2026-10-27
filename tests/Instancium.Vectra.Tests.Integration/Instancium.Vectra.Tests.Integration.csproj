@@ -17,6 +17,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
     <ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\assets\gold\queries.json" Link="gold\queries.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
