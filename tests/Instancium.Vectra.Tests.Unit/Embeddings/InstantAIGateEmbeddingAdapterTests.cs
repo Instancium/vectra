@@ -122,6 +122,7 @@ public class InstantAIGateEmbeddingAdapterTests
     /// </summary>
     private sealed class StubEmbeddingTransport : IEmbeddingTransport
     {
+
         private readonly EmbeddingResponse? _response;
         private readonly Exception? _throwOnGenerate;
         private readonly int _dimension;
@@ -129,6 +130,11 @@ public class InstantAIGateEmbeddingAdapterTests
 
         public int GenerateCalls { get; private set; }
         public int DimensionCalls { get; private set; }
+
+        public int ConnectCalls { get; private set; }
+        public string? LastRepoId { get; private set; }
+        public EmbeddingRequest? LastRequest { get; private set; }
+        public CancellationToken LastCancellationToken { get; private set; }
 
         public StubEmbeddingTransport(
             EmbeddingResponse? response = null,
@@ -143,7 +149,10 @@ public class InstantAIGateEmbeddingAdapterTests
         }
 
         public Task ConnectAsync(CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
+        {
+            ConnectCalls++;
+            return Task.CompletedTask;
+        }
 
         public Task<EmbeddingResponse> GenerateEmbeddingsAsync(
             string repoId,
@@ -151,16 +160,16 @@ public class InstantAIGateEmbeddingAdapterTests
             CancellationToken cancellationToken = default)
         {
             GenerateCalls++;
+            LastRepoId = repoId;
+            LastRequest = request;
+            LastCancellationToken = cancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
             if (_throwOnGenerate != null)
                 return Task.FromException<EmbeddingResponse>(_throwOnGenerate);
 
-            if (_response != null)
-                return Task.FromResult(_response);
-
-            return Task.FromResult(
-                new EmbeddingResponse(Array.Empty<float>(), 0, 0));
+            return Task.FromResult(_response
+                ?? new EmbeddingResponse(Array.Empty<float>(), 0, 0));
         }
 
         public Task<int> GetEmbeddingDimensionAsync(
@@ -185,5 +194,54 @@ public class InstantAIGateEmbeddingAdapterTests
             => throw new NotImplementedException();
 
         public ValueTask DisposeAsync() => default;
+    }
+
+    [Fact]
+    public async Task GenerateEmbeddingsAsync_ShouldDelegateToTransportWithCorrectArguments()
+    {
+        // Arrange
+        var expectedResponse = new EmbeddingResponse(
+            new float[] { 0.1f, 0.2f, 0.3f }, 10, 3);
+        var transport = new StubEmbeddingTransport(expectedResponse);
+        var options = Options.Create(new EmbeddingGatewayOptions { MaxRetryAttempts = 3 });
+        var adapter = new InstantAIGateEmbeddingAdapter(
+            transport,
+            options,
+            NullLogger<InstantAIGateEmbeddingAdapter>.Instance);
+
+        var inputModelId = "qwen3-embedding-0.6b";
+        var inputRequest = new EmbeddingRequest("Hello world", Normalize: true);
+
+        // Act
+        var result = await adapter.GenerateEmbeddingsAsync(
+            inputModelId, inputRequest);
+
+        // Assert — поведенческие инварианты
+        Assert.Equal(1, transport.GenerateCalls);
+        Assert.Equal(inputModelId, transport.LastRepoId);          
+        Assert.Equal("Hello world", transport.LastRequest?.Text);    
+        Assert.True(transport.LastRequest?.Normalize);              
+        Assert.Equal(expectedResponse, result);
+        Assert.Equal(1, transport.ConnectCalls);                   
+    }
+
+    [Fact]
+    public async Task GenerateEmbeddingsAsync_ShouldNotReconnectOnSubsequentCalls()
+    {
+        // Arrange
+        var transport = new StubEmbeddingTransport(
+            new EmbeddingResponse(Array.Empty<float>(), 0, 0));
+        var options = Options.Create(new EmbeddingGatewayOptions());
+        var adapter = new InstantAIGateEmbeddingAdapter(
+            transport, options,
+            NullLogger<InstantAIGateEmbeddingAdapter>.Instance);
+
+        // Act — два вызова подряд
+        await adapter.GenerateEmbeddingsAsync("m", new EmbeddingRequest("a"));
+        await adapter.GenerateEmbeddingsAsync("m", new EmbeddingRequest("b"));
+
+        // Assert — Connect вызван только один раз
+        Assert.Equal(1, transport.ConnectCalls);
+        Assert.Equal(2, transport.GenerateCalls);
     }
 }
