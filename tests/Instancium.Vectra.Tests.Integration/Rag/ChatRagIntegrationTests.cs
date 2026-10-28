@@ -62,7 +62,7 @@ public sealed class ChatRagIntegrationTests
                 ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2",
                 ["Vectra:Gateways:Chat:Url"] = chatUrl,
                 ["Vectra:Gateways:Chat:HubPath"] = "/hub/gateway",
-                ["Vectra:Gateways:Chat:RepoId"] = "qwen3-4b-instruct",
+                ["Vectra:Gateways:Chat:RepoId"] = "qwen3-vl-8b-instruct",
                 ["Vectra:Gateways:Chat:ApiKey"] = GatewayTestEnvironment.ApiKey
             })
             .Build();

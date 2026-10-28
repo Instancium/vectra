@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 
 internal sealed class SignalRChatTransport : IChatTransport
 {
+    private const int MaxPromptAttempts = 2;
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(300);
+
     private readonly HubConnection _connection;
     private readonly ChatGatewayOptions _options;
     private readonly ILogger<SignalRChatTransport> _logger;
@@ -31,9 +34,6 @@ internal sealed class SignalRChatTransport : IChatTransport
             {
                 httpOptions.AccessTokenProvider = () => Task.FromResult<string?>(_options.ApiKey);
             })
-            // Removed WithAutomaticReconnect() to prevent implicit reconnections that change
-            // connectionId and trigger EphemeralSessionRegistry.NotifyConnectionDisconnected,
-            // which destroys sessions mid-stream.
             .Build();
     }
 
@@ -69,75 +69,193 @@ internal sealed class SignalRChatTransport : IChatTransport
         return _connection.InvokeAsync(_options.Rpc.DestroySession, sessionId, cancellationToken);
     }
 
-    public async IAsyncEnumerable<SessionTokenDelta> StreamAnswerAsync(
+    // Non-iterator wrapper: argument validation must fail eagerly, not on first MoveNextAsync.
+    public IAsyncEnumerable<SessionTokenDelta> StreamAnswerAsync(
         string sessionId,
         ChatMessage message,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentNullException.ThrowIfNull(message);
 
-        Channel<SessionTokenDelta> channel = Channel.CreateUnbounded<SessionTokenDelta>(
-            new UnboundedChannelOptions { SingleReader = true });
+        return StreamAnswerCoreAsync(sessionId, message, cancellationToken);
+    }
 
-        IDisposable tokenSubscription = _connection.On<SessionTokenDelta>(
-            _options.Rpc.ReceiveTokenDelta,
-            delta =>
-            {
-                if (!string.Equals(delta.SessionId, sessionId, StringComparison.Ordinal))
-                {
-                    return;
-                }
+    // Iterator body: yield lives in a try/finally WITHOUT catch (CS1626-compliant).
+    // All failure/retry handling is offloaded to the producer task below.
+    private async IAsyncEnumerable<SessionTokenDelta> StreamAnswerCoreAsync(
+        string sessionId,
+        ChatMessage message,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        Channel<SessionTokenDelta> outputChannel = Channel.CreateUnbounded<SessionTokenDelta>(
+            new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
 
-                channel.Writer.TryWrite(delta);
-                if (delta.IsDone)
-                {
-                    channel.Writer.TryComplete();
-                }
-            });
+        using CancellationTokenSource pipelineCts =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        IDisposable errorSubscription = _connection.On<string>(
-            _options.Rpc.ReceiveError,
-            error => channel.Writer.TryComplete(
-                new VectraException($"Chat gateway error during session '{sessionId}': {error}")));
-
-        IDisposable overflowSubscription = _connection.On<ContextOverflowException>(
-            _options.Rpc.ReceiveContextOverflow,
-            ex => channel.Writer.TryComplete(
-                new VectraException(
-                    $"Context overflow in chat session '{sessionId}': {ex.Message} " +
-                    "Reduce Top-K or the per-snippet char budget in RagPromptBuilder.",
-                    ex)));
-
-        IDisposable closedSubscription = _connection.On<string>(
-            _options.Rpc.ReceiveSessionClosed,
-            closedSessionId =>
-            {
-                if (string.Equals(closedSessionId, sessionId, StringComparison.Ordinal))
-                {
-                    channel.Writer.TryComplete(
-                        new VectraException($"Chat session '{sessionId}' was closed by the gateway before completion."));
-                }
-            });
+        Task pipeline = ExecuteStreamingPipelineAsync(sessionId, message, outputChannel.Writer, pipelineCts.Token);
 
         try
         {
-            await _connection.InvokeAsync(_options.Rpc.SendPromptDelta, sessionId, message, cancellationToken)
-                .ConfigureAwait(false);
-
-            await foreach (SessionTokenDelta delta in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (SessionTokenDelta delta in outputChannel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
                 yield return delta;
             }
+
+            // Success path: observe producer completion.
+            await pipeline.ConfigureAwait(false);
         }
         finally
         {
-            tokenSubscription.Dispose();
-            errorSubscription.Dispose();
-            overflowSubscription.Dispose();
-            closedSubscription.Dispose();
-            channel.Writer.TryComplete();
+            // Consumer abandoned enumeration early: stop the producer, dispose subscriptions.
+            pipelineCts.Cancel();
         }
+    }
+
+    // Producer: owns try/catch, retry loop and hub subscriptions. Never yields, never throws out.
+    private async Task ExecuteStreamingPipelineAsync(
+        string sessionId,
+        ChatMessage message,
+        ChannelWriter<SessionTokenDelta> outputWriter,
+        CancellationToken cancellationToken)
+    {
+        Exception? terminalException = null;
+
+        try
+        {
+            for (int attempt = 1; attempt <= MaxPromptAttempts; attempt++)
+            {
+                Channel<SessionTokenDelta> attemptChannel = Channel.CreateUnbounded<SessionTokenDelta>(
+                    new UnboundedChannelOptions { SingleReader = true });
+
+                IDisposable tokenSubscription = _connection.On<SessionTokenDelta>(
+                    _options.Rpc.ReceiveTokenDelta,
+                    delta =>
+                    {
+                        if (!string.Equals(delta.SessionId, sessionId, StringComparison.Ordinal))
+                        {
+                            return;
+                        }
+
+                        attemptChannel.Writer.TryWrite(delta);
+                        if (delta.IsDone)
+                        {
+                            attemptChannel.Writer.TryComplete();
+                        }
+                    });
+
+                IDisposable errorSubscription = _connection.On<string>(
+                    _options.Rpc.ReceiveError,
+                    error => attemptChannel.Writer.TryComplete(
+                        new VectraException($"Chat gateway error during session '{sessionId}': {error}")));
+
+                // Propagate the canonical exception as-is so upper layers can apply mitigation.
+                IDisposable overflowSubscription = _connection.On<ContextOverflowException>(
+                    _options.Rpc.ReceiveContextOverflow,
+                    ex => attemptChannel.Writer.TryComplete(ex));
+
+                IDisposable closedSubscription = _connection.On<string>(
+                    _options.Rpc.ReceiveSessionClosed,
+                    closedSessionId =>
+                    {
+                        if (string.Equals(closedSessionId, sessionId, StringComparison.Ordinal))
+                        {
+                            attemptChannel.Writer.TryComplete(
+                                new VectraException($"Chat session '{sessionId}' was closed by the gateway before completion."));
+                        }
+                    });
+
+                bool retryNeeded = false;
+                bool streamedAny = false;
+
+                try
+                {
+                    // Retry path: the gateway lost the session state, re-register it before re-sending.
+                    if (attempt > 1)
+                    {
+                        await _connection.InvokeAsync(_options.Rpc.JoinSession, sessionId, _options.RepoId, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    // Fire-and-forget send: tokens arrive via ReceiveTokenDelta, no RPC round-trip blocking.
+                    await _connection.SendAsync(_options.Rpc.SendPromptDelta, sessionId, message, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await foreach (SessionTokenDelta delta in attemptChannel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        streamedAny = true;
+                        await outputWriter.WriteAsync(delta, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return;
+                }
+                catch (Exception ex) when (
+                    !streamedAny &&
+                    attempt < MaxPromptAttempts &&
+                    IsSessionNotActive(ex))
+                {
+                    _logger.LogWarning(
+                        "Session {SessionId} was not active on attempt {Attempt}: {Reason}. Re-joining and retrying.",
+                        sessionId,
+                        attempt,
+                        ex.Message);
+                    retryNeeded = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    terminalException = ex;
+                    return;
+                }
+                finally
+                {
+                    tokenSubscription.Dispose();
+                    errorSubscription.Dispose();
+                    overflowSubscription.Dispose();
+                    closedSubscription.Dispose();
+                    attemptChannel.Writer.TryComplete();
+                }
+
+                if (!retryNeeded)
+                {
+                    break;
+                }
+
+                await Task.Delay(RetryDelay, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is already observed by the consumer through its own token.
+            terminalException = null;
+        }
+        catch (Exception ex)
+        {
+            terminalException = ex;
+        }
+        finally
+        {
+            // Surface the terminal failure (if any) to the enumerator; never throw from the producer.
+            outputWriter.TryComplete(terminalException);
+        }
+    }
+
+    private static bool IsSessionNotActive(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current.Message.Contains("was not found", StringComparison.OrdinalIgnoreCase) ||
+                current.Message.Contains("not active", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public async ValueTask DisposeAsync()

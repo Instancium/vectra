@@ -8,7 +8,7 @@ public sealed class ChatGatewayOptions
 
     public string HubPath { get; set; } = "/hub/gateway";
 
-    public string RepoId { get; set; } = "qwen3-4b-instruct";
+    public string RepoId { get; set; } = "qwen3-vl-8b-instruct";
 
     public string ApiKey { get; set; } = string.Empty;
 

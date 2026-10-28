@@ -34,6 +34,7 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+
         await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
 
         GatewayStatusDetails status = await _transport.GetGatewayStatusAsync(cancellationToken).ConfigureAwait(false);
@@ -45,11 +46,12 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         }
 
         string sessionId = Guid.NewGuid().ToString("N");
-        await _transport.JoinSessionAsync(sessionId, _options.RepoId, cancellationToken).ConfigureAwait(false);
 
-        // Removed MarkSessionAsEphemeralAsync: ephemeral sessions are destroyed on disconnect,
-        // which can happen during implicit SignalR reconnects (connectionId changes).
-        // We rely on explicit DestroySession in finally instead.
+        // Join the session as a standard (non-ephemeral) session.
+        // RAG sessions are short-lived but strictly managed by this adapter via explicit DestroySession in the finally block.
+        // This prevents the server's SessionReaper or EphemeralSessionRegistry from abruptly killing the session 
+        // if a transient SignalR network hiccup occurs during a long-running token stream.
+        await _transport.JoinSessionAsync(sessionId, _options.RepoId, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
             "Chat session joined (non-ephemeral). Session={SessionId}, Repo={RepoId}",
@@ -70,6 +72,7 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         }
         finally
         {
+            // Explicitly destroy the session to immediately free VRAM and the context slot.
             await DestroySessionBestEffortAsync(sessionId).ConfigureAwait(false);
         }
     }
@@ -108,9 +111,11 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            // If explicit destruction fails (e.g., network drop after stream completion), 
+            // the server's SessionReaperService will collect the orphaned non-ephemeral session after 2 minutes.
             _logger.LogWarning(
                 ex,
-                "Failed to destroy chat session {SessionId}; session reaper will collect it after 2 minutes.",
+                "Failed to destroy chat session {SessionId}; session reaper will collect it after idle timeout.",
                 sessionId);
         }
     }

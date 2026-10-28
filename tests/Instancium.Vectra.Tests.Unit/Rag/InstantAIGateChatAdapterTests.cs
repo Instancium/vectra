@@ -38,7 +38,7 @@ public sealed class InstantAIGateChatAdapterTests
         Assert.Equal(1, transport.ConnectCalls);
         Assert.Equal(1, transport.StatusCalls);
         Assert.NotNull(transport.JoinedSessionId);
-        Assert.Equal("qwen3-4b-instruct", transport.JoinedRepoId);
+        Assert.Equal("qwen3-vl-8b-instruct", transport.JoinedRepoId);
         Assert.Null(transport.EphemeralSessionId); // Changed: no longer ephemeral
         Assert.Equal(transport.JoinedSessionId, transport.DestroyedSessionId);
         Assert.Equal(transport.JoinedSessionId, transport.StreamedSessionId);
@@ -93,7 +93,7 @@ public sealed class InstantAIGateChatAdapterTests
     private static InstantAIGateChatAdapter CreateAdapter(StubChatTransport transport) =>
         new(
             transport,
-            Options.Create(new ChatGatewayOptions { RepoId = "qwen3-4b-instruct" }),
+            Options.Create(new ChatGatewayOptions { RepoId = "qwen3-vl-8b-instruct" }),
             NullLogger<InstantAIGateChatAdapter>.Instance);
 
     private sealed class StubChatTransport : IChatTransport

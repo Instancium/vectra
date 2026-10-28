@@ -543,7 +543,7 @@ internal static class VectraCliConfig
     public const string DefaultGatewayUrl = "http://localhost:5001";
     public const string DefaultChatGatewayUrl = "http://localhost:5000";
     public const string RepoId = "qwen3-embedding-0.6b";
-    public const string ChatRepoId = "qwen3-4b-instruct";
+    public const string ChatRepoId = "qwen3-vl-8b-instruct";
     public const int DefaultTopK = 3;
     public const int DefaultBenchIterations = 5;
     public const int MaxProbePages = 100_000;
