@@ -1,28 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.0.3</Version>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
   </ItemGroup>
-
 </Project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
