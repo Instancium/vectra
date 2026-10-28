@@ -8,10 +8,7 @@
 *.a
 *.o
 
-Merge-Codebase.ps1
-codebase.md
-Show-Structure.ps1
-project_structure.md
+builder/
 
 
 # ==============================================================================
