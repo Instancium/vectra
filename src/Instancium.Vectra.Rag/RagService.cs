@@ -20,6 +20,13 @@ public sealed class RagService : IRagService
     private readonly IChatCompletionClient _chatClient;
     private readonly ILogger<RagService> _logger;
 
+    // Stage 1 recall window: in-process brute-force SIMD scan is ~1 ms at MVP scale,
+    // so we afford the classic top-100 recall window before reranking.
+    private const int RecallWindow = 100;
+
+    // Stage 2 weight scale: keeps lexical boost comparable to the dense cosine spread.
+    private const double LexicalBoostScale = 0.15;
+
     public RagService(
         IInferenceEngine embeddingEngine,
         IVectorSearchEngine searchEngine,
@@ -43,15 +50,14 @@ public sealed class RagService : IRagService
             new EmbeddingRequest(request.Question, Normalize: true),
             cancellationToken).ConfigureAwait(false);
 
-        // 1. Over-retrieve candidates from the vector store (Dense Retrieval)
-        int retrievalLimit = Math.Max(OverRetrievalFactor, request.TopK * 4);
+        // Stage 1 (recall): dense bi-encoder retrieval over a wide window.
         IReadOnlyList<SearchResult> candidates = await _searchEngine.SearchAsync(
             queryVector.Embedding,
-            retrievalLimit,
+            Math.Max(RecallWindow, request.TopK),
             cancellationToken).ConfigureAwait(false);
 
-        // 2. Hybrid Re-ranking: Dense Vector Score + Sparse Keyword Boost
-        IReadOnlyList<SearchResult> reranked = RerankWithKeywordBoost(request.Question, candidates, request.TopK);
+        // Stage 2 (precision): sparse lexical rerank with candidate-window IDF weighting.
+        IReadOnlyList<SearchResult> reranked = RerankLexically(request.Question, candidates, request.TopK);
 
         List<RagContextChunk> context = reranked
             .Select(match => new RagContextChunk(match.ChunkId, match.PageNumber, match.Score, match.Snippet))
@@ -63,6 +69,62 @@ public sealed class RagService : IRagService
             context.Count);
 
         return new RagRetrievalResult(request.Question, context);
+    }
+
+    /// <summary>
+    /// Stage 2 precision layer: IDF-weighted lexical reranker over the recall window.
+    /// Rare discriminative terms (e.g. "thermoelectric", "dielectric") outweigh frequent
+    /// generic ones ("pressure", "signal"). Deterministic, zero infrastructure cost,
+    /// stays inside Vectra.Rag (Core contracts only).
+    /// </summary>
+    private static IReadOnlyList<SearchResult> RerankLexically(
+        string question,
+        IReadOnlyList<SearchResult> candidates,
+        int finalTopK)
+    {
+        if (candidates.Count == 0)
+        {
+            return candidates;
+        }
+
+        HashSet<string> queryTerms = ExtractSignificantTerms(question);
+        if (queryTerms.Count == 0)
+        {
+            return candidates.Take(finalTopK).ToList();
+        }
+
+        // Document frequency of each query term inside the recall window.
+        var documentFrequency = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (string term in queryTerms)
+        {
+            documentFrequency[term] = candidates.Count(candidate =>
+                candidate.Snippet.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        double window = candidates.Count;
+        return candidates
+            .Select(candidate =>
+            {
+                double boost = 0.0;
+                foreach (string term in queryTerms)
+                {
+                    if (!candidate.Snippet.Contains(term, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    // IDF over the window: df=1 of 100 => ln(51) ~ 3.9 (strong signal);
+                    // df=50 of 100 => ln(2.96) ~ 1.1 (weak, generic signal).
+                    double idf = Math.Log(1.0 + window / (1.0 + documentFrequency[term]));
+                    boost += idf;
+                }
+
+                // Publish the fused score so logs and citations reflect true ranking.
+                return candidate with { Score = candidate.Score + (float)(boost * LexicalBoostScale) };
+            })
+            .OrderByDescending(x => x.Score)
+            .Take(finalTopK)
+            .ToList();
     }
 
     public async IAsyncEnumerable<string> StreamAnswerAsync(

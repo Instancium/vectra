@@ -33,6 +33,26 @@ public sealed class RagServiceTests
         Assert.Equal("target chunk text", result.Context[0].Snippet);
     }
 
+
+    [Fact]
+    public async Task RetrieveAsync_ShouldPromoteRareTermChunkOverDenseNoise()
+    {
+        var store = new InMemoryVectorStore();
+        // Dense-preferred noise: exact query direction, but no rare discriminative term.
+        store.Upsert(1, 1, 2, "target glossary canonical titles", new float[] { 1f, 0f });
+        // True answer: slightly weaker dense score, carries the rare term.
+        store.Upsert(2, 1, 7, "target diaphragm strain capacitance", new float[] { 0.95f, 0.05f });
+
+        var service = CreateService(store: store);
+        RagRetrievalResult result = await service.RetrieveAsync(
+            new RagRequest("target diaphragm", "repo-test", topK: 2));
+
+        // Without the lexical rerank the dense order would put chunk 1 first.
+        Assert.Equal(2, result.Context[0].ChunkId);
+        Assert.Equal(7, result.Context[0].PageNumber);
+    }
+
+
     [Fact]
     public async Task StreamAnswerAsync_ShouldPassGroundedPromptWithQuestionToChatClient()
     {
