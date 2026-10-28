@@ -1,5 +1,7 @@
 ﻿namespace Instancium.Vectra.Infrastructure.DependencyInjection;
 
+using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Infrastructure.Chat;
 using Instancium.Vectra.Infrastructure.Configuration;
 using Instancium.Vectra.Infrastructure.Embeddings;
 using Instancium.Vectra.Infrastructure.Transport;
@@ -26,6 +28,28 @@ public static class ServiceCollectionExtensions
                 sp.GetRequiredService<ILogger<InstantAIGateEmbeddingAdapter>>()
             ));
 
+        return services;
+    }
+
+    public static IServiceCollection AddVectraChatInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.Configure<ChatGatewayOptions>(configuration.GetSection(ChatGatewayOptions.SectionName));
+        services.AddSingleton<IChatTransport, SignalRChatTransport>();
+        services.AddSingleton<ChatContractProbe>(sp =>
+            new ChatContractProbe(
+                sp.GetRequiredService<IChatTransport>(),
+                sp.GetRequiredService<IOptions<ChatGatewayOptions>>(),
+                sp.GetRequiredService<ILogger<ChatContractProbe>>()));
+        services.AddSingleton<IChatCompletionClient>(sp =>
+            new InstantAIGateChatAdapter(
+                sp.GetRequiredService<IChatTransport>(),
+                sp.GetRequiredService<IOptions<ChatGatewayOptions>>(),
+                sp.GetRequiredService<ILogger<InstantAIGateChatAdapter>>()));
         return services;
     }
 }

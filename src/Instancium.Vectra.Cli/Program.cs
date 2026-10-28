@@ -1,7 +1,9 @@
 ﻿using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Indexing.DependencyInjection;
+using Instancium.Vectra.Infrastructure.Chat;
 using Instancium.Vectra.Infrastructure.DependencyInjection;
+using Instancium.Vectra.Rag.DependencyInjection;
 using Instancium.Vectra.Search;
 using InstantAIGate.Core.Dtos.Inference;
 using InstantAIGate.Core.Interfaces.Inference;
@@ -34,21 +36,31 @@ static ServiceProvider BuildServiceProvider()
         ?? throw new InvalidOperationException($"{VectraCliConfig.ApiKeyVariable} is not set.");
     string gatewayUrl = Environment.GetEnvironmentVariable(VectraCliConfig.GatewayUrlVariable)
         ?? VectraCliConfig.DefaultGatewayUrl;
+    string chatUrl = Environment.GetEnvironmentVariable(VectraCliConfig.ChatGatewayUrlVariable)
+        ?? VectraCliConfig.DefaultChatGatewayUrl;
 
-    var services = new ServiceCollection();
-    services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-    services.AddVectraInfrastructure(new ConfigurationBuilder()
+    IConfiguration configuration = new ConfigurationBuilder()
         .AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Vectra:Gateways:Embedding:Url"] = gatewayUrl,
             ["Vectra:Gateways:Embedding:HubPath"] = "/hub/gateway",
             ["Vectra:Gateways:Embedding:RepoId"] = VectraCliConfig.RepoId,
             ["Vectra:Gateways:Embedding:ApiKey"] = key,
-            ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2"
+            ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2",
+            ["Vectra:Gateways:Chat:Url"] = chatUrl,
+            ["Vectra:Gateways:Chat:HubPath"] = "/hub/gateway",
+            ["Vectra:Gateways:Chat:RepoId"] = VectraCliConfig.ChatRepoId,
+            ["Vectra:Gateways:Chat:ApiKey"] = key
         })
-        .Build());
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+    services.AddVectraInfrastructure(configuration);
+    services.AddVectraChatInfrastructure(configuration);
     services.AddVectraInMemorySearch();
     services.AddVectraIndexing();
+    services.AddVectraRag();
     return services.BuildServiceProvider();
 }
 
@@ -113,6 +125,10 @@ static async Task<int> ExecuteCommandAsync(ServiceProvider provider, string[] ar
             return RunStats(provider);
         case "bench":
             return await RunBenchAsync(args);
+        case "ask":
+            return await RunAskAsync(provider, args);
+        case "probe-chat":
+            return await RunProbeChatAsync(provider, args);
         case "help":
             PrintUsage();
             return 0;
@@ -224,6 +240,78 @@ static async Task<int> RunSearchAsync(ServiceProvider provider, string[] args)
     }
 
     return 0;
+}
+
+static async Task<int> RunAskAsync(ServiceProvider provider, string[] args)
+{
+    if (args.Length < 2)
+    {
+        Console.Error.WriteLine("Usage: ask \"<question>\" [topK]");
+        return 2;
+    }
+
+    int topK = args.Length >= 3 && int.TryParse(args[2], out int parsedTopK)
+        ? parsedTopK
+        : VectraCliConfig.DefaultTopK;
+    if (topK < 1)
+    {
+        Console.Error.WriteLine("topK must be >= 1.");
+        return 2;
+    }
+
+    var store = provider.GetRequiredService<IVectorStore>();
+    if (store.Count == 0)
+    {
+        Console.Error.WriteLine("Index is empty. Run 'index <pdf> <from> <to>' first (inside the REPL).");
+        return 1;
+    }
+
+    var rag = provider.GetRequiredService<IRagService>();
+    string question = args[1];
+
+    RagRetrievalResult retrieval = await rag.RetrieveAsync(
+        new RagRequest(question, VectraCliConfig.RepoId, topK));
+
+    Console.WriteLine();
+    Console.WriteLine($"=== Retrieved Context (Top-{topK}) ===");
+    for (int i = 0; i < retrieval.Context.Count; i++)
+    {
+        RagContextChunk chunk = retrieval.Context[i];
+        Console.WriteLine($"[{i + 1}] page {chunk.PageNumber} | score {chunk.Score:F4} | {Truncate(chunk.Snippet, 120)}");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("=== Answer (streamed from chat gateway) ===");
+    await foreach (string token in rag.StreamAnswerAsync(retrieval))
+    {
+        Console.Write(token);
+    }
+
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine($"Citations: {string.Join(", ", retrieval.Context.Select(chunk => $"p.{chunk.PageNumber}"))}");
+    return 0;
+}
+
+static async Task<int> RunProbeChatAsync(ServiceProvider provider, string[] args)
+{
+    var probe = provider.GetRequiredService<ChatContractProbe>();
+    IReadOnlyList<ChatProbeStep> steps = await probe.RunAsync();
+
+    bool allOk = true;
+    foreach (ChatProbeStep step in steps)
+    {
+        string status = step.Succeeded ? "[OK  ]" : "[FAIL]";
+        string detail = step.Detail is null ? string.Empty : $" :: {step.Detail}";
+        string error = step.ServerError is null ? string.Empty : $" ({step.ServerError})";
+        Console.WriteLine($"{status} {step.Operation} -> '{step.WireName}' ({step.ArgumentCount} arg(s)){detail}{error}");
+        if (!step.Succeeded)
+        {
+            allOk = false;
+        }
+    }
+
+    return allOk ? 0 : 1;
 }
 
 static int RunStats(ServiceProvider provider)
@@ -439,18 +527,23 @@ static void PrintUsage()
     Console.WriteLine("  vectra                              Interactive REPL (index persists in process memory)");
     Console.WriteLine("  vectra index <pdf> <from> <to>      Index PDF pages");
     Console.WriteLine("  vectra search \"<query>\" [topK]      Search top-K results (default 3)");
+    Console.WriteLine("  vectra ask \"<question>\" [topK]      Retrieve Top-K and stream a grounded answer");
+    Console.WriteLine("  vectra probe-chat                   Run guide v1.4 chat-wire handshake against the gateway");
     Console.WriteLine("  vectra stats                        Show index statistics");
     Console.WriteLine("  vectra bench <pdf> [iterations]     Run 20/50/100-page benchmark matrix");
     Console.WriteLine("  vectra help                         Show this help");
-    Console.WriteLine("REPL commands: index, search, stats, bench, help, exit");
+    Console.WriteLine("REPL commands: index, search, stats, bench, ask, probe-chat, help, exit");
 }
 
 internal static class VectraCliConfig
 {
     public const string ApiKeyVariable = "VECTRA_GATEWAY_API_KEY";
     public const string GatewayUrlVariable = "VECTRA_EMBEDDING_GATEWAY_URL";
+    public const string ChatGatewayUrlVariable = "VECTRA_CHAT_GATEWAY_URL";
     public const string DefaultGatewayUrl = "http://localhost:5001";
+    public const string DefaultChatGatewayUrl = "http://localhost:5000";
     public const string RepoId = "qwen3-embedding-0.6b";
+    public const string ChatRepoId = "qwen3-4b-instruct";
     public const int DefaultTopK = 3;
     public const int DefaultBenchIterations = 5;
     public const int MaxProbePages = 100_000;

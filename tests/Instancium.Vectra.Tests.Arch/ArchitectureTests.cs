@@ -6,6 +6,7 @@ using System.Reflection;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Indexing.Pipeline;
 using Instancium.Vectra.Infrastructure.Embeddings;
+using Instancium.Vectra.Rag;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
 using Xunit;
@@ -16,6 +17,7 @@ public sealed class ArchitectureTests
     private static readonly Assembly Core = typeof(IVectorStore).Assembly;
     private static readonly Assembly Indexing = typeof(IndexingPipeline).Assembly;
     private static readonly Assembly Infrastructure = typeof(InstantAIGateEmbeddingAdapter).Assembly;
+    private static readonly Assembly Rag = typeof(RagService).Assembly;
     private static readonly Assembly Search = typeof(InMemoryVectorSearchEngine).Assembly;
     private static readonly Assembly Storage = typeof(InMemoryVectorStore).Assembly;
 
@@ -61,6 +63,20 @@ public sealed class ArchitectureTests
         Assert.DoesNotContain(References(Infrastructure), name => name == "Instancium.Vectra.Indexing");
         Assert.DoesNotContain(References(Infrastructure), name => name == "Instancium.Vectra.Search");
         Assert.DoesNotContain(References(Infrastructure), name => name == "Instancium.Vectra.Storage");
+    }
+
+    [Fact]
+    public void Rag_ShouldNotReferenceInfrastructureIndexingOrSignalR()
+    {
+        Assert.DoesNotContain(References(Rag), name => name == "Instancium.Vectra.Infrastructure");
+        Assert.DoesNotContain(References(Rag), name => name == "Instancium.Vectra.Indexing");
+        Assert.DoesNotContain(References(Rag), name => name.StartsWith("Microsoft.AspNetCore.SignalR", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Infrastructure_ShouldNotReferenceRag()
+    {
+        Assert.DoesNotContain(References(Infrastructure), name => name == "Instancium.Vectra.Rag");
     }
 
     private static string[] References(Assembly assembly) =>

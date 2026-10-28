@@ -16,5 +16,6 @@
     <ProjectReference Include="..\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
     <ProjectReference Include="..\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
     <ProjectReference Include="..\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
+    <ProjectReference Include="..\Instancium.Vectra.Rag\Instancium.Vectra.Rag.csproj" />
   </ItemGroup>
 </Project>

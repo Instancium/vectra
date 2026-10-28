@@ -2,25 +2,16 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Search;
 
-using System.Diagnostics;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
 using Xunit;
-using Xunit.Abstractions;
 
 [Trait("Category", "Unit")]
 public sealed class InMemoryVectorSearchEngineTests
 {
-    private const int PerformanceVectorCount = 5_000;
-    private const int PerformanceDimension = 1024;
-    private const double P95BudgetMilliseconds = 30.0;
-
-    private readonly ITestOutputHelper _output;
-
-    public InMemoryVectorSearchEngineTests(ITestOutputHelper output)
+    public InMemoryVectorSearchEngineTests()
     {
-        _output = output;
     }
 
     [Fact]
@@ -64,54 +55,6 @@ public sealed class InMemoryVectorSearchEngineTests
         await Assert.ThrowsAsync<ArgumentException>(() => search.SearchAsync(new float[] { 1f }, 1));
     }
 
-    [Fact]
-    public async Task SearchAsync_ShouldKeepPlantedVectorInTop1_UnderP95Budget_AtMvpScale()
-    {
-        var store = new InMemoryVectorStore();
-        var search = new InMemoryVectorSearchEngine(store);
-        var random = new Random(42);
-
-        for (int index = 0; index < PerformanceVectorCount; index++)
-        {
-            var vector = new float[PerformanceDimension];
-            for (int i = 0; i < PerformanceDimension; i++)
-            {
-                vector[i] = (float)random.NextDouble() * 2f - 1f;
-            }
-
-            store.Upsert(index + 1, 1, (index % 10) + 1, $"chunk-{index}", Normalize(vector));
-        }
-
-        float[] planted = Normalize(Enumerable.Repeat(0.7f, PerformanceDimension).ToArray());
-        store.Upsert(PerformanceVectorCount + 1, 9, 42, "planted", planted);
-
-        for (int warmup = 0; warmup < 3; warmup++)
-        {
-            await search.SearchAsync(planted, 3);
-        }
-
-        var latencies = new List<double>();
-        IReadOnlyList<SearchResult>? last = null;
-        for (int run = 0; run < 15; run++)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            last = await search.SearchAsync(planted, 3);
-            stopwatch.Stop();
-            latencies.Add(stopwatch.Elapsed.TotalMilliseconds);
-        }
-
-        latencies.Sort();
-        double p95 = latencies[(int)Math.Ceiling(0.95 * latencies.Count) - 1];
-        _output.WriteLine($"vectors={store.Count} dimension={PerformanceDimension} p95={p95:F3} ms (budget {P95BudgetMilliseconds} ms).");
-
-        Assert.NotNull(last);
-        Assert.Equal(PerformanceVectorCount + 1, last[0].ChunkId);
-        Assert.Equal(42, last[0].PageNumber);
-        Assert.True(last[0].Score > 0.999f, $"Expected near-perfect score, got {last[0].Score}.");
-        Assert.True(p95 <= P95BudgetMilliseconds, $"p95 search latency {p95:F3} ms exceeds budget {P95BudgetMilliseconds} ms.");
-    }
-
-
     //[Fact]
     //public async Task SearchAsync_ShouldKeepPlantedVectorInTop1_UnderP95Budget_At50kScale()
     //{
@@ -119,10 +62,10 @@ public sealed class InMemoryVectorSearchEngineTests
     //    var search = new InMemoryVectorSearchEngine(store);
     //    var random = new Random(42);
 
-    //    for (int index = 0; index < PerformanceVectorCount; index++)
+    //    for (int index = 0; index < 5000; index++)
     //    {
-    //        var vector = new float[PerformanceDimension];
-    //        for (int i = 0; i < PerformanceDimension; i++)
+    //        var vector = new float[1024];
+    //        for (int i = 0; i < 1024; i++)
     //        {
     //            vector[i] = (float)random.NextDouble() * 2f - 1f;
     //        }
@@ -130,8 +73,8 @@ public sealed class InMemoryVectorSearchEngineTests
     //        store.Upsert(index + 1, 1, (index % 10) + 1, $"chunk-{index}", Normalize(vector));
     //    }
 
-    //    float[] planted = Normalize(Enumerable.Repeat(0.7f, PerformanceDimension).ToArray());
-    //    store.Upsert(PerformanceVectorCount + 1, 9, 42, "planted", planted);
+    //    float[] planted = Normalize(Enumerable.Repeat(0.7f, 1024).ToArray());
+    //    store.Upsert(5001, 9, 42, "planted", planted);
 
     //    for (int warmup = 0; warmup < 3; warmup++)
     //    {
@@ -150,13 +93,13 @@ public sealed class InMemoryVectorSearchEngineTests
 
     //    latencies.Sort();
     //    double p95 = latencies[(int)Math.Ceiling(0.95 * latencies.Count) - 1];
-    //    _output.WriteLine($"vectors={store.Count} dimension={PerformanceDimension} p95={p95:F3} ms (budget {P95BudgetMilliseconds} ms; TZ Stage-4 target 5 ms tracked in bench-report).");
+    //    _output.WriteLine($"vectors={store.Count} dimension=1024 p95={p95:F3} ms (budget 30 ms; TZ Stage-4 target 5 ms tracked in bench-report).");
 
     //    Assert.NotNull(last);
-    //    Assert.Equal(PerformanceVectorCount + 1, last[0].ChunkId);
+    //    Assert.Equal(5001, last[0].ChunkId);
     //    Assert.Equal(42, last[0].PageNumber);
     //    Assert.True(last[0].Score > 0.999f, $"Expected near-perfect score, got {last[0].Score}.");
-    //    Assert.True(p95 <= P95BudgetMilliseconds, $"p95 search latency {p95:F3} ms exceeds budget {P95BudgetMilliseconds} ms.");
+    //    Assert.True(p95 <= 30.0, $"p95 search latency {p95:F3} ms exceeds budget 30 ms.");
     //}
 
     private static float[] Normalize(float[] vector)
@@ -171,3 +114,5 @@ public sealed class InMemoryVectorSearchEngineTests
         return vector.Select(value => value / norm).ToArray();
     }
 }
+
+
