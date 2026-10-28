@@ -8,6 +8,7 @@
 *.a
 *.o
 
+artifacts/
 builder/
 appsettings.local.json
 

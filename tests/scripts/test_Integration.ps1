@@ -1,5 +1,5 @@
 #$env:VECTRA_TEST_CORPUS_PDF = "C:\corpus\Lessons-In-Industrial-Instrumentation.pdf"
 $env:VECTRA_GATEWAY_API_KEY = "ChangeMeSuperSecureAdminApiKey123"
 $env:VECTRA_REQUIRE_GATEWAY = "1"
-#dotnet test ../Instancium.Vectra.Tests.Integration --filter "Category=Integration"
-dotnet test ../Instancium.Vectra.Tests.Integration --filter "Category=Bench"
+dotnet test ../Instancium.Vectra.Tests.Integration --filter "Category=Integration"
+#dotnet test ../Instancium.Vectra.Tests.Integration --filter "Category=Bench"
