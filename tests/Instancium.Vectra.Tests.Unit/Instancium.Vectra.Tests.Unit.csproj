@@ -21,6 +21,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\assets\pdf\test-doc.pdf" Condition="Exists('..\assets\pdf\test-doc.pdf')" Link="assets\pdf\test-doc.pdf" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 	<ItemGroup>
 		<Using Include="Xunit" />

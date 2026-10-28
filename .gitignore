@@ -9,7 +9,7 @@
 *.o
 
 builder/
-
+appsettings.local.json
 
 # ==============================================================================
 # Native Runtimes & Inference Drivers (InstantAIGate)

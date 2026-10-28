@@ -1,16 +1,77 @@
 [
-  { "Query": "What is a pressure transmitter?", "ExpectedPageFrom": 15, "ExpectedPageTo": 20 },
-  { "Query": "How does a thermocouple work?", "ExpectedPageFrom": 42, "ExpectedPageTo": 48 },
-  { "Query": "What is a control valve?", "ExpectedPageFrom": 30, "ExpectedPageTo": 35 },
-  { "Query": "What is a flow meter?", "ExpectedPageFrom": 25, "ExpectedPageTo": 30 },
-  { "Query": "How does a level transmitter work?", "ExpectedPageFrom": 50, "ExpectedPageTo": 58 },
-  { "Query": "What is a differential pressure transmitter?", "ExpectedPageFrom": 18, "ExpectedPageTo": 24 },
-  { "Query": "How is a pH sensor calibrated?", "ExpectedPageFrom": 60, "ExpectedPageTo": 68 },
-  { "Query": "What is a PLC?", "ExpectedPageFrom": 10, "ExpectedPageTo": 16 },
-  { "Query": "How does a temperature sensor work?", "ExpectedPageFrom": 35, "ExpectedPageTo": 40 },
-  { "Query": "What is a RTD sensor?", "ExpectedPageFrom": 40, "ExpectedPageTo": 45 },
-  { "Query": "What is a solenoid valve?", "ExpectedPageFrom": 48, "ExpectedPageTo": 52 },
-  { "Query": "How does a vibration sensor work?", "ExpectedPageFrom": 70, "ExpectedPageTo": 80 },
-  { "Query": "What is a loop-powered transmitter?", "ExpectedPageFrom": 12, "ExpectedPageTo": 18 },
-  { "Query": "What is a magnetic flow meter?", "ExpectedPageFrom": 22, "ExpectedPageTo": 28 }
+  {
+    "query": "thermoelectric voltage produced by two dissimilar conductors subjected to temperature difference Seebeck effect",
+    "expectedPageFrom": 3,
+    "expectedPageTo": 8
+  },
+  {
+    "query": "platinum resistance element infers temperature Pt100 nominal resistance 100 ohm at zero Celsius",
+    "expectedPageFrom": 9,
+    "expectedPageTo": 14
+  },
+  {
+    "query": "diaphragm deformation converted to electrical measurement signal gauge absolute pressure reference",
+    "expectedPageFrom": 15,
+    "expectedPageTo": 20
+  },
+  {
+    "query": "pressure difference between high-side and low-side process connections static pressure impulse lines",
+    "expectedPageFrom": 21,
+    "expectedPageTo": 26
+  },
+  {
+    "query": "electromagnetic induction volumetric flow electrically conductive liquid lined measuring tube electrodes",
+    "expectedPageFrom": 27,
+    "expectedPageTo": 32
+  },
+  {
+    "query": "vortex shedding frequency alternating vortices downstream shaped obstruction Strouhal number",
+    "expectedPageFrom": 33,
+    "expectedPageTo": 38
+  },
+  {
+    "query": "modulates fluid flow changing internal flow passage actuator command positioner travel",
+    "expectedPageFrom": 39,
+    "expectedPageTo": 44
+  },
+  {
+    "query": "energized coil magnetic force changes fluid closure mechanism direct-acting pilot-operated",
+    "expectedPageFrom": 45,
+    "expectedPageTo": 50
+  },
+  {
+    "query": "electromagnetic energy guided along probe reflection travel time surface position dielectric",
+    "expectedPageFrom": 51,
+    "expectedPageTo": 56
+  },
+  {
+    "query": "capacitance change associated with material surrounding sensing electrode threshold level switching",
+    "expectedPageFrom": 57,
+    "expectedPageTo": 62
+  },
+  {
+    "query": "hydrogen-ion activity glass membrane Nernstian response pH dimensionless quantity",
+    "expectedPageFrom": 63,
+    "expectedPageTo": 68
+  },
+  {
+    "query": "oxidation reduction electrode potential platinum measuring electrode mixed sample kinetics",
+    "expectedPageFrom": 69,
+    "expectedPageTo": 74
+  },
+  {
+    "query": "piezoelectric element charge dynamic mechanical loading seismic mass acceleration sensitive axis",
+    "expectedPageFrom": 75,
+    "expectedPageTo": 80
+  },
+  {
+    "query": "eddy current induced conductive target probe coil impedance gap separation proximity",
+    "expectedPageFrom": 81,
+    "expectedPageTo": 86
+  },
+  {
+    "query": "loop-powered two-wire transmitter receives operating power communicates measurement same conductors current",
+    "expectedPageFrom": 87,
+    "expectedPageTo": 92
+  }
 ]

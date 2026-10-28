@@ -1,36 +1,57 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="10.1.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.14" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\src\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\assets\gold\queries.json" Link="gold\queries.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\assets\gold\queries.json" Link="gold\queries.json" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\assets\pdf\sample-2pages.pdf" Condition="Exists('..\assets\pdf\sample-2pages.pdf')" Link="assets\pdf\sample-2pages.pdf" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\assets\pdf\test-doc.pdf" Condition="Exists('..\assets\pdf\test-doc.pdf')" Link="assets\pdf\test-doc.pdf" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="appsettings.local.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
 
 </Project>
 

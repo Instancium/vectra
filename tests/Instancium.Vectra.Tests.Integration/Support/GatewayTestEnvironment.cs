@@ -1,27 +1,46 @@
-﻿// tests/Instancium.Vectra.Tests.Integration/Support/GatewaySupport.cs
-#nullable enable
-namespace Instancium.Vectra.Tests.Integration.Support;
+﻿namespace Instancium.Vectra.Tests.Integration.Support;
 
 using System;
 using System.IO;
 using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 public static class GatewayTestEnvironment
 {
+    private static readonly IConfiguration Configuration;
+
+    static GatewayTestEnvironment()
+    {
+        Configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables()
+            .Build();
+    }
+
     public const string GatewayUrlVariable = "VECTRA_EMBEDDING_GATEWAY_URL";
     public const string ApiKeyVariable = "VECTRA_GATEWAY_API_KEY";
     public const string CorpusVariable = "VECTRA_TEST_CORPUS_PDF";
     public const string RequireVariable = "VECTRA_REQUIRE_GATEWAY";
 
     public static string GatewayUrl =>
-        Environment.GetEnvironmentVariable(GatewayUrlVariable) ?? "http://localhost:5001";
+        Environment.GetEnvironmentVariable(GatewayUrlVariable)
+        ?? Configuration["Vectra:Gateways:Embedding:Url"]
+        ?? "http://localhost:5001";
 
-    public static string? ApiKey => Environment.GetEnvironmentVariable(ApiKeyVariable);
+    public static string? ApiKey =>
+        Environment.GetEnvironmentVariable(ApiKeyVariable)
+        ?? Configuration["Vectra:Gateways:Embedding:ApiKey"];
 
-    public static string? CorpusPath => Environment.GetEnvironmentVariable(CorpusVariable);
+    public static string? CorpusPath =>
+        Environment.GetEnvironmentVariable(CorpusVariable)
+        ?? Configuration["Vectra:TestCorpus:PdfPath"];
 
-    public static bool RequireGateway => Environment.GetEnvironmentVariable(RequireVariable) == "1";
+    public static bool RequireGateway =>
+        Environment.GetEnvironmentVariable(RequireVariable) == "1"
+        || Configuration["VECTRA_REQUIRE_GATEWAY"] == "1";
 
     private static readonly object Sync = new();
     private static string? _skipReason;
@@ -53,7 +72,7 @@ public static class GatewayTestEnvironment
             string? corpus = CorpusPath;
             if (string.IsNullOrWhiteSpace(corpus))
             {
-                return $"Set {CorpusVariable} to run corpus-backed tests.";
+                return $"Set {CorpusVariable} or configure Vectra:TestCorpus:PdfPath in appsettings.json";
             }
 
             if (!File.Exists(corpus))
@@ -69,7 +88,7 @@ public static class GatewayTestEnvironment
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
         {
-            return $"Set {ApiKeyVariable} (GatewayUser bearer token) to run integration tests.";
+            return $"Set {ApiKeyVariable} or configure Vectra:Gateways:Embedding:ApiKey in appsettings.json";
         }
 
         try
