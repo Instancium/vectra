@@ -8,12 +8,23 @@
         "ApiKey": "ChangeMeSuperSecureAdminApiKey123",
         "MaxRetryAttempts": 2,
         "MaxParallelRequests": 4,
-        "ConnectionTimeoutSeconds": 30
+        "ConnectionTimeoutSeconds": 30,
+        "Rpc": {
+          "JoinSession": "JoinSession",
+          "MarkSessionAsEphemeral": "MarkSessionAsEphemeral",
+          "SendPromptDelta": "SendPromptDelta",
+          "ReceiveTokenDelta": "ReceiveTokenDelta",
+          "ReceiveError": "ReceiveError",
+          "ReceiveContextOverflow": "ReceiveContextOverflow",
+          "ReceiveSessionClosed": "ReceiveSessionClosed",
+          "DestroySession": "DestroySession",
+          "GetGatewayStatus": "GetGatewayStatus"
+        }
       },
       "Chat": {
         "Url": "http://localhost:5000",
         "HubPath": "/hub/gateway",
-        "RepoId": "qwen3-vl-8b-instruct",
+        "RepoId": "qwen3-4b-instruct",
         "ApiKey": "ChangeMeSuperSecureAdminApiKey123",
         "Rpc": {
           "JoinSession": "JoinSession",
@@ -40,6 +51,9 @@
         "control valve",
         "level sensor"
       ]
+    },
+    "Tests": {
+      "ExpectedTextMarker": "SEC-TC"
     },
     "TestCorpus": {
       "PdfPath": "assets/pdf/test-doc.pdf"

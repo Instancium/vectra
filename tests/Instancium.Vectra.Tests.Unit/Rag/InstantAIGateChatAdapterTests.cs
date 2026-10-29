@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Infrastructure.Chat;
 using Instancium.Vectra.Infrastructure.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Instancium.Vectra.Infrastructure.Transport;
 using InstantAIGate.Core.Dtos.Inference;
 using InstantAIGate.Core.Dtos.Session;
@@ -38,7 +40,13 @@ public sealed class InstantAIGateChatAdapterTests
         Assert.Equal(1, transport.ConnectCalls);
         Assert.Equal(1, transport.StatusCalls);
         Assert.NotNull(transport.JoinedSessionId);
-        Assert.Equal("qwen3-vl-8b-instruct", transport.JoinedRepoId);
+        string expectedRepoId = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("config_vectra.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables()
+            .Build()["Vectra:Gateways:Chat:RepoId"] ?? "qwen3-vl-8b-instruct";
+
+        Assert.Equal(expectedRepoId, transport.JoinedRepoId);
         Assert.Null(transport.EphemeralSessionId); // Changed: no longer ephemeral
         Assert.Equal(transport.JoinedSessionId, transport.DestroyedSessionId);
         Assert.Equal(transport.JoinedSessionId, transport.StreamedSessionId);
@@ -90,11 +98,19 @@ public sealed class InstantAIGateChatAdapterTests
         Assert.Equal(0, transport.DestroyCalls);
     }
 
-    private static InstantAIGateChatAdapter CreateAdapter(StubChatTransport transport) =>
-        new(
+    private static InstantAIGateChatAdapter CreateAdapter(StubChatTransport transport)
+    {
+        string repoId = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("config_vectra.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables()
+            .Build()["Vectra:Gateways:Chat:RepoId"] ?? "qwen3-vl-8b-instruct";
+
+        return new(
             transport,
-            Options.Create(new ChatGatewayOptions { RepoId = "qwen3-vl-8b-instruct" }),
+            Options.Create(new ChatGatewayOptions { RepoId = repoId }),
             NullLogger<InstantAIGateChatAdapter>.Instance);
+    }
 
     private sealed class StubChatTransport : IChatTransport
     {

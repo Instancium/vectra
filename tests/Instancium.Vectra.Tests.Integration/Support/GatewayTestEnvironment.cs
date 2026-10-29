@@ -30,6 +30,21 @@ public static class GatewayTestEnvironment
         ?? Configuration["Vectra:Gateways:Embedding:Url"]
         ?? "http://localhost:5001";
 
+    public static string EmbeddingRepoId =>
+        Environment.GetEnvironmentVariable("VECTRA_EMBEDDING_REPO_ID")
+        ?? Configuration["Vectra:Gateways:Embedding:RepoId"]
+        ?? "qwen3-embedding-0.6b";
+
+    public static string ChatRepoId =>
+        Environment.GetEnvironmentVariable("VECTRA_CHAT_REPO_ID")
+        ?? Configuration["Vectra:Gateways:Chat:RepoId"]
+        ?? "qwen3-vl-8b-instruct";
+
+    public static string ExpectedTextMarker =>
+        Environment.GetEnvironmentVariable("VECTRA_EXPECTED_TEXT_MARKER")
+        ?? Configuration["Vectra:Tests:ExpectedTextMarker"]
+        ?? "SEC-TC";
+
     public static string? ApiKey =>
         Environment.GetEnvironmentVariable(ApiKeyVariable)
         ?? Configuration["Vectra:Gateways:Embedding:ApiKey"];

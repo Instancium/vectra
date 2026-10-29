@@ -45,11 +45,11 @@ public sealed class IndexingPipelineBenchTests
         var pages = await provider.GetRequiredService<ITextExtractor>()
             .ExtractAsync(new TextExtractionRequest(corpusPath, 1, PageWindow));
         Assert.True(pages.Count >= 95, $"Expected ≥95 pages from test-doc, got {pages.Count}.");
-        Assert.Contains(pages, p => p.Text.Contains("SEC-TC", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(pages, p => p.Text.Contains(GatewayTestEnvironment.ExpectedTextMarker, StringComparison.OrdinalIgnoreCase));
 
         // Index full document
         IndexingPipelineResult indexing = await pipeline.RunAsync(new IndexingPipelineRequest(
-            corpusPath, 1, PageWindow, "qwen3-embedding-0.6b",
+            corpusPath, 1, PageWindow, GatewayTestEnvironment.EmbeddingRepoId,
             new TextChunkingOptions(1200, 200), 4));
 
         Assert.Equal(indexing.Metrics.TotalChunks, store.Count);
@@ -61,7 +61,7 @@ public sealed class IndexingPipelineBenchTests
         foreach (GoldQuery query in queries)
         {
             EmbeddingResponse queryVector = await engine.GenerateEmbeddingsAsync(
-                "qwen3-embedding-0.6b",
+                GatewayTestEnvironment.EmbeddingRepoId,
                 new EmbeddingRequest(query.Query, Normalize: true));
 
             IReadOnlyList<SearchResult> baseline = await searchEngine.SearchAsync(queryVector.Embedding, 3);
@@ -118,7 +118,7 @@ public sealed class IndexingPipelineBenchTests
         {
             ["Vectra:Gateways:Embedding:Url"] = GatewayTestEnvironment.GatewayUrl,
             ["Vectra:Gateways:Embedding:HubPath"] = "/hub/gateway",
-            ["Vectra:Gateways:Embedding:RepoId"] = "qwen3-embedding-0.6b",
+            ["Vectra:Gateways:Embedding:RepoId"] = GatewayTestEnvironment.EmbeddingRepoId,
             ["Vectra:Gateways:Embedding:ApiKey"] = GatewayTestEnvironment.ApiKey,
             ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2"
         }).Build());

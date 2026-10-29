@@ -16,11 +16,10 @@ using Xunit;
 [Trait("Category", "Integration")]
 public sealed class ChatRagIntegrationTests
 {
-    private const string EmbeddingRepoId = "qwen3-embedding-0.6b";
-
     [ChatGatewayFact]
     public async Task ChatRag_ShouldStreamGroundedAnswerFromLiveChatGateway()
     {
+        string embeddingRepoId = GatewayTestEnvironment.EmbeddingRepoId;
         string corpusPath = GatewayTestEnvironment.CorpusPath!;
         await using ServiceProvider provider = BuildProvider();
 
@@ -28,12 +27,12 @@ public sealed class ChatRagIntegrationTests
         var rag = provider.GetRequiredService<IRagService>();
 
         IndexingPipelineResult indexing = await pipeline.RunAsync(
-            new IndexingPipelineRequest(corpusPath, 1, 20, EmbeddingRepoId));
+            new IndexingPipelineRequest(corpusPath, 1, 20, embeddingRepoId));
         Assert.True(indexing.Metrics.TotalChunks > 0);
 
         RagRetrievalResult retrieval = await rag.RetrieveAsync(new RagRequest(
             "How does a pressure transmitter convert diaphragm deformation into an electrical signal?",
-            EmbeddingRepoId,
+            embeddingRepoId,
             topK: 3));
         Assert.NotEmpty(retrieval.Context);
         Assert.All(retrieval.Context, chunk => Assert.InRange(chunk.PageNumber, 1, 20));
@@ -57,12 +56,12 @@ public sealed class ChatRagIntegrationTests
             {
                 ["Vectra:Gateways:Embedding:Url"] = GatewayTestEnvironment.GatewayUrl,
                 ["Vectra:Gateways:Embedding:HubPath"] = "/hub/gateway",
-                ["Vectra:Gateways:Embedding:RepoId"] = EmbeddingRepoId,
+                ["Vectra:Gateways:Embedding:RepoId"] = GatewayTestEnvironment.EmbeddingRepoId,
                 ["Vectra:Gateways:Embedding:ApiKey"] = GatewayTestEnvironment.ApiKey,
                 ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2",
                 ["Vectra:Gateways:Chat:Url"] = chatUrl,
                 ["Vectra:Gateways:Chat:HubPath"] = "/hub/gateway",
-                ["Vectra:Gateways:Chat:RepoId"] = "qwen3-vl-8b-instruct",
+                ["Vectra:Gateways:Chat:RepoId"] = GatewayTestEnvironment.ChatRepoId,
                 ["Vectra:Gateways:Chat:ApiKey"] = GatewayTestEnvironment.ApiKey
             })
             .Build();

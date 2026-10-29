@@ -13,30 +13,30 @@ using Xunit;
 [Trait("Category", "Integration")]
 public class InstantAIGateEmbeddingAdapterIntegrationTests
 {
-    private const string RepoId = "qwen3-embedding-0.6b";
-
     [GatewayFact]
     public async Task Adapter_ShouldReturnDeterministicCanonicalVectors_FromRealGateway()
     {
+        string repoId = GatewayTestEnvironment.EmbeddingRepoId;
+
         IOptions<EmbeddingGatewayOptions> options = Options.Create(new EmbeddingGatewayOptions
         {
             Url = GatewayTestEnvironment.GatewayUrl,
             HubPath = "/hub/gateway",
-            RepoId = RepoId,
+            RepoId = repoId,
             ApiKey = GatewayTestEnvironment.ApiKey!
         });
         await using var transport = new SignalREmbeddingTransport(options, NullLogger<SignalREmbeddingTransport>.Instance);
         var adapter = new InstantAIGateEmbeddingAdapter(transport, options, NullLogger<InstantAIGateEmbeddingAdapter>.Instance);
 
-        int dimension = await adapter.GetEmbeddingDimensionAsync(RepoId);
+        int dimension = await adapter.GetEmbeddingDimensionAsync(repoId);
         var details = await transport.GetActiveModelDetailsAsync();
 
         Assert.True(dimension > 0);
-        Assert.Equal(RepoId, details.RepoId, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(repoId, details.RepoId, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(dimension, details.EmbeddingDimension);
 
-        EmbeddingResponse first = await adapter.GenerateEmbeddingsAsync(RepoId, new EmbeddingRequest("Determinism probe text", Normalize: true));
-        EmbeddingResponse second = await adapter.GenerateEmbeddingsAsync(RepoId, new EmbeddingRequest("Determinism probe text", Normalize: true));
+        EmbeddingResponse first = await adapter.GenerateEmbeddingsAsync(repoId, new EmbeddingRequest("Determinism probe text", Normalize: true));
+        EmbeddingResponse second = await adapter.GenerateEmbeddingsAsync(repoId, new EmbeddingRequest("Determinism probe text", Normalize: true));
 
         Assert.Equal(dimension, first.Embedding.Length);
         Assert.Equal(dimension, first.EmbeddingDimension);

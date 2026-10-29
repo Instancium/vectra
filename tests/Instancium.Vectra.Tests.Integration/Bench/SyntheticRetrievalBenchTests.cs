@@ -42,7 +42,7 @@ public sealed class SyntheticRetrievalBenchTests
             {
                 chunkId++;
                 EmbeddingResponse response = await engine.GenerateEmbeddingsAsync(
-                    "qwen3-embedding-0.6b",
+                    GatewayTestEnvironment.EmbeddingRepoId,
                     new EmbeddingRequest(chunk.Text, Normalize: true));
                 store.Upsert(chunkId, 1, chunk.PageNumber, chunk.Text, response.Embedding);
             }
@@ -55,7 +55,7 @@ public sealed class SyntheticRetrievalBenchTests
         foreach (var topic in topics)
         {
             EmbeddingResponse queryVec = await engine.GenerateEmbeddingsAsync(
-                "qwen3-embedding-0.6b",
+                GatewayTestEnvironment.EmbeddingRepoId,
                 new EmbeddingRequest(topic.Query, Normalize: true));
 
             for (int rep = 0; rep < 7; rep++)
@@ -91,7 +91,7 @@ public sealed class SyntheticRetrievalBenchTests
         {
             ["Vectra:Gateways:Embedding:Url"] = GatewayTestEnvironment.GatewayUrl,
             ["Vectra:Gateways:Embedding:HubPath"] = "/hub/gateway",
-            ["Vectra:Gateways:Embedding:RepoId"] = "qwen3-embedding-0.6b",
+            ["Vectra:Gateways:Embedding:RepoId"] = GatewayTestEnvironment.EmbeddingRepoId,
             ["Vectra:Gateways:Embedding:ApiKey"] = GatewayTestEnvironment.ApiKey,
             ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2"
         }).Build());
