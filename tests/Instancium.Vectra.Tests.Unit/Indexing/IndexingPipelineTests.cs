@@ -150,6 +150,7 @@ public sealed class IndexingPipelineTests
         Assert.Contains(services, sd => sd.ServiceType == typeof(IContentExtractorRegistry));
         Assert.Contains(services, sd => sd.ServiceType == typeof(IFileScanner));
         Assert.Contains(services, sd => sd.ServiceType == typeof(IChangeClassifier));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IIncrementalIndexer));
     }
 
     [Fact]

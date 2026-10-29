@@ -100,7 +100,7 @@ public sealed class DiskIndexWriter : IIndexWriter
                 chunks[i].PageNumber,
                 offset,
                 encoded[i].Length,
-                IsActive: true);
+                IsActive: chunks[i].IsActive);
             offset += encoded[i].Length;
             cursor += encoded[i].Length;
         }

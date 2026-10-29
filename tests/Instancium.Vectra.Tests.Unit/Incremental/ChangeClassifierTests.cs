@@ -86,6 +86,53 @@ public sealed class ChangeClassifierTests
     }
 
     [Fact]
+    public void ChangeClassifier_ShouldNotReportAlreadyRemovedFiles_OnEveryRun()
+    {
+        IReadOnlyList<FileState> previous = new[]
+        {
+            State(1, "docs/active.pdf", "hash-active", IndexFileStatus.Indexed),
+            State(2, "docs/removed.pdf", "hash-removed", IndexFileStatus.Removed)
+        };
+        IReadOnlyList<ScannedFile> scanned = new[]
+        {
+            Scan("docs/active.pdf", "hash-active")
+        };
+
+        ChangeSet changes = _classifier.Classify(scanned, previous);
+
+        Assert.False(changes.HasChanges);
+        Assert.Empty(changes.Added);
+        Assert.Empty(changes.Modified);
+        Assert.Empty(changes.Removed);
+        Assert.Single(changes.Unchanged);
+    }
+
+    [Fact]
+    public void ChangeClassifier_ShouldReindexReappearedFile_AfterRemoval()
+    {
+        IReadOnlyList<FileState> previous = new[]
+        {
+            State(1, "docs/active.pdf", "hash-active", IndexFileStatus.Indexed),
+            State(2, "docs/removed.pdf", "hash-old", IndexFileStatus.Removed)
+        };
+        IReadOnlyList<ScannedFile> scanned = new[]
+        {
+            Scan("docs/active.pdf", "hash-active"),
+            Scan("docs/removed.pdf", "hash-new")
+        };
+
+        ChangeSet changes = _classifier.Classify(scanned, previous);
+
+        Assert.True(changes.HasChanges);
+        Assert.Empty(changes.Added);
+        Assert.Empty(changes.Removed);
+        Assert.Single(changes.Unchanged);
+        ModifiedFile modified = Assert.Single(changes.Modified);
+        Assert.Equal("docs/removed.pdf", modified.Current.RelativePath);
+        Assert.Equal(2, modified.Previous.FileId);
+    }
+
+    [Fact]
     public void ChangeClassifier_ShouldThrow_OnDuplicateScannedPaths()
     {
         IReadOnlyList<ScannedFile> scanned = new[]

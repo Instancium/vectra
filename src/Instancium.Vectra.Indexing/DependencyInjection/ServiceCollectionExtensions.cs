@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ITextChunker>(_ => new PageAwareFixedSizeChunker());
         services.AddSingleton<IIndexingPipeline, IndexingPipeline>();
+        services.AddSingleton<IIncrementalIndexer, IncrementalIndexer>();
 
         return services;
     }

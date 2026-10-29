@@ -12,5 +12,10 @@ public enum IndexFileStatus
     /// File could not be processed (e.g. corrupt content). It is kept in the state so that
     /// 'doctor' can report it and future indexing runs can retry it.
     /// </summary>
-    Failed = 1
+    Failed = 1,
+
+    /// <summary>
+    /// File was deleted from the content directory. Kept in state with inactive chunks (stage 5).
+    /// </summary>
+    Removed = 2
 }

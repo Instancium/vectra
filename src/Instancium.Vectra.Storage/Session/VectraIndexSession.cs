@@ -148,6 +148,11 @@ public sealed class VectraIndexSession : IVectraIndexSession
         for (int i = 0; i < chunkEntries.Count; i++)
         {
             ChunkMapEntry entry = chunkEntries[i];
+            if (!entry.IsActive)
+            {
+                continue;
+            }
+
             ReadOnlyMemory<float> vector = vectors.Slice(i * dimension, dimension);
             // Snippet is intentionally empty: text is hydrated lazily via IChunkTextReader (stage 3).
             _vectorStore.Upsert(entry.ChunkId, entry.FileId, entry.PageNumber, string.Empty, vector);

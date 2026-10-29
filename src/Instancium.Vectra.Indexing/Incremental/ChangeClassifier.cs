@@ -39,8 +39,9 @@ public sealed class ChangeClassifier : IChangeClassifier
             bool hashChanged = !string.Equals(previous.Sha256, scanned.Sha256, StringComparison.OrdinalIgnoreCase);
             bool formatChanged = !string.Equals(previous.Format, expectedFormat, StringComparison.Ordinal);
             bool retryAfterFailure = previous.Status == IndexFileStatus.Failed;
+            bool reappearedAfterRemoval = previous.Status == IndexFileStatus.Removed;
 
-            if (hashChanged || formatChanged || retryAfterFailure)
+            if (hashChanged || formatChanged || retryAfterFailure || reappearedAfterRemoval)
             {
                 modified.Add(new ModifiedFile(scanned, previous));
             }
@@ -55,7 +56,7 @@ public sealed class ChangeClassifier : IChangeClassifier
             .ToHashSet(StringComparer.Ordinal);
 
         FileState[] removed = previousStates
-            .Where(state => !scannedPaths.Contains(state.Path))
+            .Where(state => !scannedPaths.Contains(state.Path) && state.Status != IndexFileStatus.Removed)
             .ToArray();
 
         return new ChangeSet(
