@@ -47,13 +47,12 @@ public sealed class InstantAIGateChatAdapterTests
             .Build()["Vectra:Gateways:Chat:RepoId"] ?? "qwen3-vl-8b-instruct";
 
         Assert.Equal(expectedRepoId, transport.JoinedRepoId);
-        Assert.Null(transport.EphemeralSessionId); // Changed: no longer ephemeral
         Assert.Equal(transport.JoinedSessionId, transport.DestroyedSessionId);
         Assert.Equal(transport.JoinedSessionId, transport.StreamedSessionId);
         Assert.Equal("user", transport.LastMessage!.Role);
         Assert.Contains("prompt text", transport.LastMessage.Content);
 
-        // Sequence no longer includes "ephemeral"
+        // Sequence: connect, status, join, stream, ..., destroy
         Assert.Equal(
             new[] { "connect", "status", "join", "stream" },
             transport.Sequence.Take(4));
@@ -139,7 +138,6 @@ public sealed class InstantAIGateChatAdapterTests
         public int DestroyCalls => Volatile.Read(ref _destroyCalls);
         public string? JoinedSessionId { get; private set; }
         public string? JoinedRepoId { get; private set; }
-        public string? EphemeralSessionId { get; private set; }
         public string? DestroyedSessionId { get; private set; }
         public string? StreamedSessionId { get; private set; }
         public ChatMessage? LastMessage { get; private set; }
@@ -185,17 +183,6 @@ public sealed class InstantAIGateChatAdapterTests
             lock (_sequence)
             {
                 _sequence.Add("join");
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task MarkSessionAsEphemeralAsync(string sessionId, CancellationToken cancellationToken = default)
-        {
-            EphemeralSessionId = sessionId;
-            lock (_sequence)
-            {
-                _sequence.Add("ephemeral");
             }
 
             return Task.CompletedTask;

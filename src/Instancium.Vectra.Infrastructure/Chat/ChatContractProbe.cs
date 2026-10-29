@@ -75,13 +75,6 @@ public sealed class ChatContractProbe
             cancellationToken).ConfigureAwait(false));
 
         steps.Add(await TryAsync(
-            "MarkSessionAsEphemeral",
-            _options.Rpc.MarkSessionAsEphemeral,
-            1,
-            () => _transport.MarkSessionAsEphemeralAsync(probeSessionId, cancellationToken),
-            cancellationToken).ConfigureAwait(false));
-
-        steps.Add(await TryAsync(
             "DestroySession",
             _options.Rpc.DestroySession,
             1,

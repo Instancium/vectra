@@ -536,7 +536,7 @@ static void PrintUsage()
     Console.WriteLine("  vectra index <pdf> <from> <to>      Index PDF pages");
     Console.WriteLine("  vectra search \"<query>\" [topK]      Search top-K results (default 3)");
     Console.WriteLine("  vectra ask \"<question>\" [topK]      Retrieve Top-K and stream a grounded answer");
-    Console.WriteLine("  vectra probe-chat                   Run guide v1.4 chat-wire handshake against the gateway");
+    Console.WriteLine("  vectra probe-chat                   Run guide v1.5 chat-wire handshake against the gateway");
     Console.WriteLine("  vectra stats                        Show index statistics");
     Console.WriteLine("  vectra bench <pdf> [iterations]     Run 20/50/100-page benchmark matrix");
     Console.WriteLine("  vectra help                         Show this help");

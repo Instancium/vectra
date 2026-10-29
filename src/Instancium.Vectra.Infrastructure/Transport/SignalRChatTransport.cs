@@ -57,12 +57,6 @@ internal sealed class SignalRChatTransport : IChatTransport
         return _connection.InvokeAsync(_options.Rpc.JoinSession, sessionId, repoId, cancellationToken);
     }
 
-    public Task MarkSessionAsEphemeralAsync(string sessionId, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
-        return _connection.InvokeAsync(_options.Rpc.MarkSessionAsEphemeral, sessionId, cancellationToken);
-    }
-
     public Task DestroySessionAsync(string sessionId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
