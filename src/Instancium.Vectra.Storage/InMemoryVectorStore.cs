@@ -54,13 +54,18 @@ public sealed class InMemoryVectorStore : IVectorStore
 
     public void Upsert(long chunkId, long fileId, int pageNumber, string snippet, ReadOnlyMemory<float> vector)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(snippet);
+        ArgumentNullException.ThrowIfNull(snippet);
         ArgumentOutOfRangeException.ThrowIfLessThan(chunkId, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(fileId, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
         if (vector.Length == 0)
         {
             throw new ArgumentException("Vector cannot be empty.", nameof(vector));
+        }
+
+        if (snippet.Length == 0)
+        {
+            snippet = string.Empty;
         }
 
         lock (_sync)
