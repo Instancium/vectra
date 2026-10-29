@@ -1,6 +1,7 @@
 namespace Instancium.Vectra.Storage.Session;
 
 using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
@@ -156,6 +157,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
     private static InvalidOperationException SessionNotOpen() =>
         new("The index session is not open. Call OpenAsync first.");
 
-    private static InvalidOperationException Corrupted(string details) =>
+    private static IndexCorruptedException Corrupted(string details) =>
         new($"The index is corrupted: {details} Run 'vectra doctor' for diagnostics.");
 }
