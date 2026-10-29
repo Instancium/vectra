@@ -30,20 +30,20 @@ Disk persistence (`vectors.bin` / `manifest.json`), incremental re-indexing, SHA
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Instancium.Vectra.Cli                   │
+┌──────────────────────────────────────────────────────────-───┐
+│                     Instancium.Vectra.Cli                    │
 │              REPL · one-shot commands · bench                │
-└──────┬──────────┬──────────┬──────────┬──────────┬──────────┘
-       │          │          │          │          │
-┌──────▼──┐ ┌────▼────┐ ┌───▼────┐ ┌───▼───┐ ┌───▼────┐
-│ Indexing │ │  Search │ │Storage │ │  Rag  │ │Infra-  │
-│ Pipeline │ │ Engine  │ │ Store  │ │Service│ │structure│
-└──────┬──┘ └────┬────┘ └───┬────┘ └───┬───┘ └───┬────┘
-       │         │          │          │         │
-┌──────▼─────────▼──────────▼──────────▼─────────▼──────────┐
-│                    Instancium.Vectra.Core                   │
-│           Contracts · Models · Exceptions                   │
-└─────────────────────────────────────────────────────────────┘
+└──────┬──────────┬──────────┬─────────-─┬──────────┬──────────┘
+       │          │          │           │          │
+┌──────▼─-─┐ ┌────▼────┐ ┌───▼───-─┐ ┌───▼───┐ ┌─-──▼──----─--─┐
+│ Indexing │ │ Search  │ │ Storage │ │  Rag  │ │ Infrastructure│
+│ Pipeline │ │ Engine  │ │ Store   │ │Service│ │               │
+└──────┬──-┘ └────┬────┘ └───┬───-─┘ └───┬───┘ └───┬───-------─┘
+       │          │          │           │         │
+┌──────▼────────-─▼──────────▼────────-──▼─────────▼─-─────────┐
+│                    Instancium.Vectra.Core                    │
+│                  Contracts · Models · Exceptions             │
+└───────────────────────────────────────────────────────-──────┘
 ```
 
 ### Module Responsibilities
@@ -294,21 +294,6 @@ The bench command:
 | Configuration | Microsoft.Extensions.Configuration (JSON + env) |
 | Testing | xUnit 2.9.3, coverlet |
 | Architecture Tests | Reflection-based assembly reference validation |
-
----
-
-## Long-Term Vision
-
-The MVP validates the retrieval hypothesis. The full concept (see `Концепция векторного движка`) targets:
-
-- **Disk-backed index** (`vectors.bin`, `offsets.bin`, `chunks.bin`, `manifest.json`, `file.state`, `chunk.map`)
-- **Incremental re-indexing** via SHA-256 file hashing
-- **Lazy text loading** from disk on Top-K hit
-- **Native acceleration** via P/Invoke (AVX2/AVX512, HNSW, IVF, quantized search) behind stable `IVectorSearchEngine` contract
-- **Worker mode** for continuous background index maintenance
-- **Multi-format extraction** beyond PDF
-
-The public contract surface (`Core`) is designed to absorb these capabilities without breaking consumers.
 
 ---
 
