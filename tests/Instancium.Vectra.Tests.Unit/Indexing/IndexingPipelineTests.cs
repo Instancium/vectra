@@ -14,7 +14,9 @@ using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Indexing.Chunking;
 using Instancium.Vectra.Indexing.DependencyInjection;
 using Instancium.Vectra.Indexing.Extraction;
+using Instancium.Vectra.Indexing.Incremental;
 using Instancium.Vectra.Indexing.Pipeline;
+using Instancium.Vectra.Indexing.Scanning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -144,6 +146,10 @@ public sealed class IndexingPipelineTests
         Assert.Contains(services, sd => sd.ServiceType == typeof(ITextExtractor));
         Assert.Contains(services, sd => sd.ServiceType == typeof(ITextChunker));
         Assert.Contains(services, sd => sd.ServiceType == typeof(IIndexingPipeline));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IContentExtractor));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IContentExtractorRegistry));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IFileScanner));
+        Assert.Contains(services, sd => sd.ServiceType == typeof(IChangeClassifier));
     }
 
     [Fact]
@@ -158,6 +164,9 @@ public sealed class IndexingPipelineTests
         using var provider = services.BuildServiceProvider();
 
         Assert.IsType<IndexingPipeline>(provider.GetRequiredService<IIndexingPipeline>());
+        Assert.IsType<ContentExtractorRegistry>(provider.GetRequiredService<IContentExtractorRegistry>());
+        Assert.IsType<DirectoryFileScanner>(provider.GetRequiredService<IFileScanner>());
+        Assert.IsType<ChangeClassifier>(provider.GetRequiredService<IChangeClassifier>());
     }
 
     internal sealed class PipelineSequenceRecorder

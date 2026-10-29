@@ -43,4 +43,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extractors\" />
+  </ItemGroup>
 </Project>

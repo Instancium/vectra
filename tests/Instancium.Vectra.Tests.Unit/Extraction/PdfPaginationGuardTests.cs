@@ -34,7 +34,7 @@ public sealed class PdfPaginationGuardTests
     public async Task TestDoc_ShouldContain100Pages()
     {
         Assert.True(File.Exists(TestDocPath), $"Missing test asset: {TestDocPath}");
-        var extractor = new PdfTextExtractor();
+        var extractor = new PdfContentExtractor();
         var result = await extractor.ExtractAsync(new TextExtractionRequest(TestDocPath, 1, 100));
         Assert.True(result.Count >= 95, $"Expected ≥95 non-empty pages, got {result.Count}.");
     }
@@ -43,7 +43,7 @@ public sealed class PdfPaginationGuardTests
     public async Task TestDoc_ShouldContainSectionMarkersOnExpectedPages()
     {
         Assert.True(File.Exists(TestDocPath), $"Missing test asset: {TestDocPath}");
-        var extractor = new PdfTextExtractor();
+        var extractor = new PdfContentExtractor();
         var pages = await extractor.ExtractAsync(new TextExtractionRequest(TestDocPath, 1, 100));
 
         foreach (var (section, (from, to)) in SectionPages)
@@ -62,7 +62,7 @@ public sealed class PdfPaginationGuardTests
     public async Task TestDoc_ShouldContainPageHeaders()
     {
         Assert.True(File.Exists(TestDocPath), $"Missing test asset: {TestDocPath}");
-        var extractor = new PdfTextExtractor();
+        var extractor = new PdfContentExtractor();
         var pages = await extractor.ExtractAsync(new TextExtractionRequest(TestDocPath, 1, 100));
 
         foreach (var page in pages)

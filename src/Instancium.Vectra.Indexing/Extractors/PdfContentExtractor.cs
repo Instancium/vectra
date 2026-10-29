@@ -8,13 +8,31 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using UglyToad.PdfPig;
 
-public sealed class PdfTextExtractor : ITextExtractor
+public sealed class PdfContentExtractor : IContentExtractor, ITextExtractor
 {
-    private readonly ILogger<PdfTextExtractor> _logger;
+    private readonly ILogger<PdfContentExtractor> _logger;
 
-    public PdfTextExtractor(ILogger<PdfTextExtractor>? logger = null)
+    public PdfContentExtractor(ILogger<PdfContentExtractor>? logger = null)
     {
-        _logger = logger ?? NullLogger<PdfTextExtractor>.Instance;
+        _logger = logger ?? NullLogger<PdfContentExtractor>.Instance;
+    }
+
+    public string SourceKind => "pdf";
+
+    public IReadOnlyList<string> SupportedExtensions { get; } = new[] { ".pdf" };
+
+    public async Task<ExtractedDocument> ExtractAsync(
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        string fullPath = Path.GetFullPath(filePath);
+        IReadOnlyList<PageText> pages = await ExtractAsync(
+            new TextExtractionRequest(fullPath, 1, int.MaxValue),
+            cancellationToken).ConfigureAwait(false);
+
+        return new ExtractedDocument(fullPath, SourceKind, pages);
     }
 
     public Task<IReadOnlyList<PageText>> ExtractAsync(
@@ -23,7 +41,6 @@ public sealed class PdfTextExtractor : ITextExtractor
     {
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
-
         return Task.Run(() => ExtractCore(request, cancellationToken), cancellationToken);
     }
 
@@ -32,7 +49,6 @@ public sealed class PdfTextExtractor : ITextExtractor
         CancellationToken cancellationToken)
     {
         var fullPath = Path.GetFullPath(request.FilePath);
-
         if (!File.Exists(fullPath))
         {
             throw new FileNotFoundException("PDF file not found.", fullPath);
@@ -45,7 +61,6 @@ public sealed class PdfTextExtractor : ITextExtractor
         try
         {
             using var document = PdfDocument.Open(fullPath);
-
             foreach (var page in document.GetPages())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -63,7 +78,6 @@ public sealed class PdfTextExtractor : ITextExtractor
                 try
                 {
                     var text = NormalizeWhitespace(page.Text);
-
                     if (string.IsNullOrWhiteSpace(text))
                     {
                         emptyPages++;
@@ -75,7 +89,6 @@ public sealed class PdfTextExtractor : ITextExtractor
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     failedPages++;
-
                     _logger.LogWarning(
                         "PDF page extraction failed. Path={Path}, PageNumber={PageNumber}, Error={Error}",
                         fullPath,
@@ -106,7 +119,6 @@ public sealed class PdfTextExtractor : ITextExtractor
         catch (Exception ex)
         {
             _logger.LogError(ex, "PDF text extraction failed. Path={Path}", fullPath);
-
             throw new VectraException(
                 $"PDF text extraction failed for file '{fullPath}'.",
                 ex);
