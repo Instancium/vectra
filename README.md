@@ -1,4 +1,8 @@
-# Instancium.Vectra
+# Instancium Vectra
+
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache2.0-blue.svg)](LICENSE)
+[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Client for InstantAIGate](https://img.shields.io/badge/Client%20for-InstantAIGate-007acc.svg)](https://github.com/Instancium/instant-ai-gate)
 
 **High-Performance In-Memory Vector Search & RAG Pipeline for .NET 10**
 
