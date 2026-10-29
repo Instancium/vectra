@@ -19,6 +19,8 @@ public sealed class RagService : IRagService
     private readonly IVectorSearchEngine _searchEngine;
     private readonly IChatCompletionClient _chatClient;
     private readonly ILogger<RagService> _logger;
+    private readonly IChunkMap? _chunkMap;
+    private readonly IChunkTextReader? _chunkTextReader;
 
     // Stage 1 recall window: in-process brute-force SIMD scan is ~1 ms at MVP scale,
     // so we afford the classic top-100 recall window before reranking.
@@ -31,12 +33,16 @@ public sealed class RagService : IRagService
         IInferenceEngine embeddingEngine,
         IVectorSearchEngine searchEngine,
         IChatCompletionClient chatClient,
-        ILogger<RagService>? logger = null)
+        ILogger<RagService>? logger = null,
+        IChunkMap? chunkMap = null,
+        IChunkTextReader? chunkTextReader = null)
     {
         _embeddingEngine = embeddingEngine ?? throw new ArgumentNullException(nameof(embeddingEngine));
         _searchEngine = searchEngine ?? throw new ArgumentNullException(nameof(searchEngine));
         _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
         _logger = logger ?? NullLogger<RagService>.Instance;
+        _chunkMap = chunkMap;
+        _chunkTextReader = chunkTextReader;
     }
 
     public async Task<RagRetrievalResult> RetrieveAsync(
@@ -59,7 +65,11 @@ public sealed class RagService : IRagService
         // Stage 2 (precision): sparse lexical rerank with candidate-window IDF weighting.
         IReadOnlyList<SearchResult> reranked = RerankLexically(request.Question, candidates, request.TopK);
 
-        List<RagContextChunk> context = reranked
+        // TZ-2 stage 3: lazily hydrate full chunk text, only for the final Top-K.
+        IReadOnlyList<SearchResult> hydrated = await HydrateTopKSnippetsAsync(reranked, cancellationToken)
+            .ConfigureAwait(false);
+
+        List<RagContextChunk> context = hydrated
             .Select(match => new RagContextChunk(match.ChunkId, match.PageNumber, match.Score, match.Snippet))
             .ToList();
 
@@ -69,6 +79,53 @@ public sealed class RagService : IRagService
             context.Count);
 
         return new RagRetrievalResult(request.Question, context);
+    }
+
+    /// <summary>
+    /// Reads full chunk text for Top-K results whose snippets are empty (disk index flow).
+    /// In the in-memory flow snippets are already populated, so no read happens.
+    /// </summary>
+    private async Task<IReadOnlyList<SearchResult>> HydrateTopKSnippetsAsync(
+        IReadOnlyList<SearchResult> results,
+        CancellationToken cancellationToken)
+    {
+        if (_chunkMap is null || _chunkTextReader is null || results.Count == 0)
+        {
+            return results;
+        }
+
+        var ranges = new List<ChunkTextRange>(results.Count);
+        var indices = new List<int>(results.Count);
+        for (int i = 0; i < results.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(results[i].Snippet))
+            {
+                continue;
+            }
+
+            if (_chunkMap.TryGet(results[i].ChunkId, out ChunkMapEntry? entry))
+            {
+                ranges.Add(new ChunkTextRange(entry.Offset, entry.Length));
+                indices.Add(i);
+            }
+        }
+
+        if (ranges.Count == 0)
+        {
+            return results;
+        }
+
+        IReadOnlyList<string> texts = await _chunkTextReader.ReadBatchAsync(ranges, cancellationToken)
+            .ConfigureAwait(false);
+
+        var hydrated = results.ToList();
+        for (int i = 0; i < indices.Count; i++)
+        {
+            SearchResult original = hydrated[indices[i]];
+            hydrated[indices[i]] = original with { Snippet = texts[i] };
+        }
+
+        return hydrated;
     }
 
     /// <summary>

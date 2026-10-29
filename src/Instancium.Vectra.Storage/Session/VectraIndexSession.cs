@@ -68,7 +68,7 @@ public sealed class VectraIndexSession : IVectraIndexSession
 
         ValidateConsistency(manifest, fileStates, chunkEntries, vectors.Length);
 
-        await LoadVectorsAsync(manifest.Dimension, chunkEntries, vectors, cancellationToken).ConfigureAwait(false);
+        LoadVectors(manifest.Dimension, chunkEntries, vectors);
 
         _indexDirectory = fullDirectory;
         _manifest = manifest;
@@ -142,16 +142,13 @@ public sealed class VectraIndexSession : IVectraIndexSession
         }
     }
 
-    private async Task LoadVectorsAsync(
-        int dimension,
-        IReadOnlyList<ChunkMapEntry> chunkEntries,
-        ReadOnlyMemory<float> vectors,
-        CancellationToken cancellationToken)
+    private void LoadVectors(int dimension, IReadOnlyList<ChunkMapEntry> chunkEntries, ReadOnlyMemory<float> vectors)
     {
         for (int i = 0; i < chunkEntries.Count; i++)
         {
             ChunkMapEntry entry = chunkEntries[i];
             ReadOnlyMemory<float> vector = vectors.Slice(i * dimension, dimension);
+            // Snippet is intentionally empty: text is hydrated lazily via IChunkTextReader (stage 3).
             _vectorStore.Upsert(entry.ChunkId, entry.FileId, entry.PageNumber, string.Empty, vector);
         }
     }

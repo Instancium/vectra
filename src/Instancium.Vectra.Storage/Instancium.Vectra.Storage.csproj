@@ -10,6 +10,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Instancium.Vectra.Tests.Unit" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
   </ItemGroup>
 </Project>
