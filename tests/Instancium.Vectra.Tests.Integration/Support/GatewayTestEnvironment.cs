@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using Instancium.Vectra.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -14,8 +15,7 @@ public static class GatewayTestEnvironment
     {
         Configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-            .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
+            .AddVectraConfiguration("config_vectra.json")
             .AddEnvironmentVariables()
             .Build();
     }

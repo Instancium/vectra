@@ -1,0 +1,49 @@
+{
+  "Vectra": {
+    "Gateways": {
+      "Embedding": {
+        "Url": "http://localhost:5001",
+        "HubPath": "/hub/gateway",
+        "RepoId": "qwen3-embedding-0.6b",
+        "ApiKey": "ChangeMeSuperSecureAdminApiKey123",
+        "MaxRetryAttempts": 2,
+        "MaxParallelRequests": 4,
+        "ConnectionTimeoutSeconds": 30
+      },
+      "Chat": {
+        "Url": "http://localhost:5000",
+        "HubPath": "/hub/gateway",
+        "RepoId": "qwen3-vl-8b-instruct",
+        "ApiKey": "ChangeMeSuperSecureAdminApiKey123",
+        "Rpc": {
+          "JoinSession": "JoinSession",
+          "MarkSessionAsEphemeral": "MarkSessionAsEphemeral",
+          "SendPromptDelta": "SendPromptDelta",
+          "ReceiveTokenDelta": "ReceiveTokenDelta",
+          "ReceiveError": "ReceiveError",
+          "ReceiveContextOverflow": "ReceiveContextOverflow",
+          "ReceiveSessionClosed": "ReceiveSessionClosed",
+          "DestroySession": "DestroySession",
+          "GetGatewayStatus": "GetGatewayStatus"
+        }
+      }
+    },
+    "Cli": {
+      "DefaultTopK": 3,
+      "DefaultBenchIterations": 5,
+      "MaxProbePages": 100000,
+      "BenchPageWindows": [20, 50, 100],
+      "BenchQueries": [
+        "temperature measurement",
+        "pressure transmitter",
+        "flow meter",
+        "control valve",
+        "level sensor"
+      ]
+    },
+    "TestCorpus": {
+      "PdfPath": "assets/pdf/test-doc.pdf"
+    }
+  },
+  "VECTRA_REQUIRE_GATEWAY": "1"
+}

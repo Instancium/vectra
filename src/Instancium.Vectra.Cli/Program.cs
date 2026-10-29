@@ -2,12 +2,14 @@
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Indexing.DependencyInjection;
 using Instancium.Vectra.Infrastructure.Chat;
+using Instancium.Vectra.Infrastructure.Configuration;
 using Instancium.Vectra.Infrastructure.DependencyInjection;
 using Instancium.Vectra.Rag.DependencyInjection;
 using Instancium.Vectra.Search;
 using InstantAIGate.Core.Dtos.Inference;
 using InstantAIGate.Core.Interfaces.Inference;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -32,27 +34,33 @@ await using (ServiceProvider oneShotProvider = BuildServiceProvider())
 
 static ServiceProvider BuildServiceProvider()
 {
+    IConfiguration configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddVectraConfiguration("config_vectra.json")
+        .AddEnvironmentVariables()
+        .Build();
+
     string key = Environment.GetEnvironmentVariable(VectraCliConfig.ApiKeyVariable)
+        ?? configuration["Vectra:Gateways:Embedding:ApiKey"]
+        ?? configuration["Vectra:Gateways:Chat:ApiKey"]
         ?? throw new InvalidOperationException($"{VectraCliConfig.ApiKeyVariable} is not set.");
+
     string gatewayUrl = Environment.GetEnvironmentVariable(VectraCliConfig.GatewayUrlVariable)
+        ?? configuration["Vectra:Gateways:Embedding:Url"]
         ?? VectraCliConfig.DefaultGatewayUrl;
     string chatUrl = Environment.GetEnvironmentVariable(VectraCliConfig.ChatGatewayUrlVariable)
+        ?? configuration["Vectra:Gateways:Chat:Url"]
         ?? VectraCliConfig.DefaultChatGatewayUrl;
 
-    IConfiguration configuration = new ConfigurationBuilder()
-        .AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["Vectra:Gateways:Embedding:Url"] = gatewayUrl,
-            ["Vectra:Gateways:Embedding:HubPath"] = "/hub/gateway",
-            ["Vectra:Gateways:Embedding:RepoId"] = VectraCliConfig.RepoId,
-            ["Vectra:Gateways:Embedding:ApiKey"] = key,
-            ["Vectra:Gateways:Embedding:MaxRetryAttempts"] = "2",
-            ["Vectra:Gateways:Chat:Url"] = chatUrl,
-            ["Vectra:Gateways:Chat:HubPath"] = "/hub/gateway",
-            ["Vectra:Gateways:Chat:RepoId"] = VectraCliConfig.ChatRepoId,
-            ["Vectra:Gateways:Chat:ApiKey"] = key
-        })
-        .Build();
+    configuration["Vectra:Gateways:Embedding:Url"] = gatewayUrl;
+    configuration["Vectra:Gateways:Embedding:HubPath"] ??= "/hub/gateway";
+    configuration["Vectra:Gateways:Embedding:RepoId"] ??= VectraCliConfig.RepoId;
+    configuration["Vectra:Gateways:Embedding:ApiKey"] = key;
+    configuration["Vectra:Gateways:Embedding:MaxRetryAttempts"] ??= "2";
+    configuration["Vectra:Gateways:Chat:Url"] = chatUrl;
+    configuration["Vectra:Gateways:Chat:HubPath"] ??= "/hub/gateway";
+    configuration["Vectra:Gateways:Chat:RepoId"] ??= VectraCliConfig.ChatRepoId;
+    configuration["Vectra:Gateways:Chat:ApiKey"] = key;
 
     var services = new ServiceCollection();
     services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
@@ -537,25 +545,47 @@ static void PrintUsage()
 
 internal static class VectraCliConfig
 {
+    private static IConfiguration _configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddVectraConfiguration("config_vectra.json")
+        .AddEnvironmentVariables()
+        .Build();
+
     public const string ApiKeyVariable = "VECTRA_GATEWAY_API_KEY";
     public const string GatewayUrlVariable = "VECTRA_EMBEDDING_GATEWAY_URL";
     public const string ChatGatewayUrlVariable = "VECTRA_CHAT_GATEWAY_URL";
     public const string DefaultGatewayUrl = "http://localhost:5001";
     public const string DefaultChatGatewayUrl = "http://localhost:5000";
-    public const string RepoId = "qwen3-embedding-0.6b";
-    public const string ChatRepoId = "qwen3-vl-8b-instruct";
-    public const int DefaultTopK = 3;
-    public const int DefaultBenchIterations = 5;
-    public const int MaxProbePages = 100_000;
 
-    public static readonly int[] BenchPageWindows = { 20, 50, 100 };
-
-    public static readonly string[] BenchQueries =
+    public static void Configure(IConfiguration configuration)
     {
+        _configuration = configuration;
+    }
+
+    public static string RepoId => _configuration["Vectra:Gateways:Embedding:RepoId"] ?? "qwen3-embedding-0.6b";
+
+    public static string ChatRepoId => _configuration["Vectra:Gateways:Chat:RepoId"] ?? "qwen3-vl-8b-instruct";
+
+    public static int DefaultTopK => GetIntValue("Vectra:Cli:DefaultTopK", 3);
+
+    public static int DefaultBenchIterations => GetIntValue("Vectra:Cli:DefaultBenchIterations", 5);
+
+    public static int MaxProbePages => GetIntValue("Vectra:Cli:MaxProbePages", 100_000);
+
+    public static int[] BenchPageWindows => _configuration.GetSection("Vectra:Cli:BenchPageWindows").Get<int[]>() ?? [20, 50, 100];
+
+    public static string[] BenchQueries => _configuration.GetSection("Vectra:Cli:BenchQueries").Get<string[]>() ??
+    [
         "temperature measurement",
         "pressure transmitter",
         "flow meter",
         "control valve",
         "level sensor"
-    };
+    ];
+
+    private static int GetIntValue(string key, int fallback)
+    {
+        string? raw = _configuration[key];
+        return int.TryParse(raw, out int value) ? value : fallback;
+    }
 }

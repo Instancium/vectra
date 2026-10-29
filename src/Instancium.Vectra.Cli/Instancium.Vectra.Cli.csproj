@@ -8,7 +8,13 @@
     <Version>1.0.5-rc.4</Version>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\config_vectra.json" Link="config_vectra.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\config_vectra.local.json" Link="config_vectra.local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\config_vectra.local.json')" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />

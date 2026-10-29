@@ -37,13 +37,8 @@
     <None Include="..\assets\pdf\test-doc.pdf" Condition="Exists('..\assets\pdf\test-doc.pdf')" Link="assets\pdf\test-doc.pdf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.local.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </None>
+    <None Include="..\..\src\config_vectra.json" Link="config_vectra.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\config_vectra.local.json" Link="config_vectra.local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\src\config_vectra.local.json')" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
