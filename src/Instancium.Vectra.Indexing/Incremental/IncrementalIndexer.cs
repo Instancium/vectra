@@ -78,7 +78,17 @@ public sealed class IncrementalIndexer : IIncrementalIndexer
             previousVectors = await _reader.ReadVectorsAsync(fullIndexDirectory, cancellationToken).ConfigureAwait(false);
         }
 
-        int dimension = await _engine.GetEmbeddingDimensionAsync(repoId, cancellationToken).ConfigureAwait(false);
+        int dimension;
+        try
+        {
+            dimension = await _engine.GetEmbeddingDimensionAsync(repoId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new IndexingFailedException(
+                $"Gateway readiness probe failed for repo '{repoId}'.", ex);
+        }
+
         if (dimension <= 0)
         {
             throw new IndexingFailedException(
@@ -150,7 +160,13 @@ public sealed class IncrementalIndexer : IIncrementalIndexer
                 string text = await _reader.ReadChunkTextAsync(
                     fullIndexDirectory, entry.Offset, entry.Length, cancellationToken).ConfigureAwait(false);
                 ReadOnlyMemory<float> vector = previousVectors.Slice(i * dimension, dimension);
-                survivingChunks.Add(new ChunkRecord(entry.ChunkId, entry.FileId, entry.PageNumber, text, vector));
+                survivingChunks.Add(new ChunkRecord(
+                    entry.ChunkId,
+                    entry.FileId,
+                    entry.PageNumber,
+                    text,
+                    vector,
+                    isActive: entry.IsActive));
             }
         }
 

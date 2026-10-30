@@ -17,24 +17,35 @@ public sealed class InstanciumDirectoryResolver : IInstanciumDirectoryResolver
     private const string GitIgnoreFileName = ".gitignore";
     private const string GitKeepFileName = ".gitkeep";
     private const string GitIgnoreContent =
-        "# Instancium ecosystem — derived artifacts\n" +
+        "# Instancium ecosystem - derived artifacts\n" +
         "vectra/index/\n";
 
     public string ResolveIndexDirectory(string rootPath, string? explicitIndexDir = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rootPath);
 
-        if (string.IsNullOrWhiteSpace(explicitIndexDir))
+        if (!string.IsNullOrWhiteSpace(explicitIndexDir))
         {
-            string fullRoot = Path.GetFullPath(rootPath);
-            if (!Directory.Exists(fullRoot))
-            {
-                throw new DirectoryNotFoundException($"Content root '{fullRoot}' does not exist.");
-            }
-            return Path.Combine(fullRoot, InstanciumFolderName, ProductFolderName, IndexFolderName);
+            return Path.Combine(Path.GetFullPath(explicitIndexDir), ProductFolderName, IndexFolderName);
         }
 
-        return Path.Combine(Path.GetFullPath(explicitIndexDir), ProductFolderName, IndexFolderName);
+        string fullPath = Path.GetFullPath(rootPath);
+        string targetBaseDirectory;
+
+        if (File.Exists(fullPath))
+        {
+            targetBaseDirectory = Directory.GetCurrentDirectory();
+        }
+        else if (Directory.Exists(fullPath))
+        {
+            targetBaseDirectory = fullPath;
+        }
+        else
+        {
+            throw new DirectoryNotFoundException($"Content root '{fullPath}' does not exist.");
+        }
+
+        return Path.Combine(targetBaseDirectory, InstanciumFolderName, ProductFolderName, IndexFolderName);
     }
 
     public void EnsureDirectoryStructure(string indexDirectory)

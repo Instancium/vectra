@@ -75,6 +75,18 @@ public sealed class InstanciumDirectoryResolverTests : IDisposable
     }
 
     [Fact]
+    public void InstanciumDirectoryResolver_ShouldResolveToCurrentDirectory_WhenRootIsSingleFile()
+    {
+        string tempFile = Path.Combine(_root, "single.pdf");
+        File.WriteAllText(tempFile, "%PDF-stub");
+
+        string indexDirectory = _resolver.ResolveIndexDirectory(tempFile);
+        string expected = Path.Combine(Directory.GetCurrentDirectory(), ".instancium", "vectra", "index");
+
+        Assert.Equal(expected, indexDirectory);
+    }
+
+    [Fact]
     public void InstanciumDirectoryResolver_ShouldThrow_WhenConventionRootDoesNotExist()
     {
         string missingRoot = Path.Combine(_root, "missing-root");

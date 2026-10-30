@@ -188,6 +188,18 @@ public sealed class InstantAIGateChatAdapterTests
             return Task.CompletedTask;
         }
 
+        public Task LeaveSessionAsync(string sessionId, CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _destroyCalls);
+            DestroyedSessionId = sessionId;
+            lock (_sequence)
+            {
+                _sequence.Add("destroy");
+            }
+
+            return Task.CompletedTask;
+        }
+
         public Task DestroySessionAsync(string sessionId, CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _destroyCalls);

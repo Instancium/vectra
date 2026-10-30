@@ -34,7 +34,14 @@ internal sealed class SignalRChatTransport : IChatTransport
             {
                 httpOptions.AccessTokenProvider = () => Task.FromResult<string?>(_options.ApiKey);
             })
+            .WithAutomaticReconnect()
             .Build();
+    }
+
+    public Task LeaveSessionAsync(string sessionId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+        return _connection.InvokeAsync(_options.Rpc.LeaveSession, sessionId, cancellationToken);
     }
 
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
@@ -172,8 +179,8 @@ internal sealed class SignalRChatTransport : IChatTransport
                             .ConfigureAwait(false);
                     }
 
-                    // Fire-and-forget send: tokens arrive via ReceiveTokenDelta, no RPC round-trip blocking.
-                    await _connection.SendAsync(_options.Rpc.SendPromptDelta, sessionId, message, cancellationToken)
+                    // Invoke the send RPC so gateway failures are surfaced as exceptions instead of being silently dropped.
+                    await _connection.InvokeAsync(_options.Rpc.SendPromptDelta, sessionId, message, cancellationToken)
                         .ConfigureAwait(false);
 
                     await foreach (SessionTokenDelta delta in attemptChannel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))

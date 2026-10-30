@@ -72,8 +72,8 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         }
         finally
         {
-            // Explicitly destroy the session to immediately free VRAM and the context slot.
-            await DestroySessionBestEffortAsync(sessionId).ConfigureAwait(false);
+            // Return the session to the server pool with a graceful leave instead of a hard destroy.
+            await ReleaseSessionBestEffortAsync(sessionId).ConfigureAwait(false);
         }
     }
 
@@ -103,20 +103,18 @@ public sealed class InstantAIGateChatAdapter : IChatCompletionClient, IDisposabl
         }
     }
 
-    private async Task DestroySessionBestEffortAsync(string sessionId)
+    private async Task ReleaseSessionBestEffortAsync(string sessionId)
     {
         try
         {
-            await _transport.DestroySessionAsync(sessionId).ConfigureAwait(false);
+            await _transport.LeaveSessionAsync(sessionId).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // If explicit destruction fails (e.g., network drop after stream completion), 
-            // the server's SessionReaperService will collect the orphaned non-ephemeral session after 2 minutes.
             _logger.LogWarning(
                 ex,
-                "Failed to destroy chat session {SessionId}; session reaper will collect it after idle timeout.",
+                "Failed to leave chat session {SessionId}; session reaper will collect it after idle timeout.",
                 sessionId);
         }
     }
-}
+}    

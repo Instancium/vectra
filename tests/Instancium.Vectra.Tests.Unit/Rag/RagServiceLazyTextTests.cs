@@ -107,7 +107,7 @@ public sealed class RagServiceLazyTextTests
 
         public ChunkMapEntry Get(long chunkId) => _entries[chunkId];
 
-        public bool TryGet(long chunkId, out ChunkMapEntry? entry) =>
+        public bool TryGet(long chunkId, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ChunkMapEntry? entry) =>
             _entries.TryGetValue(chunkId, out entry);
 
         public IReadOnlyList<long> GetChunkIdsByFile(long fileId) =>

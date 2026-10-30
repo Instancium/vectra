@@ -1,5 +1,6 @@
 namespace Instancium.Vectra.Core.Contracts;
 
+using System.Diagnostics.CodeAnalysis;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
@@ -19,7 +20,7 @@ public interface IChunkMap
     ChunkMapEntry Get(long chunkId);
 
     /// <summary>Tries to return the entry for <paramref name="chunkId"/>.</summary>
-    bool TryGet(long chunkId, out ChunkMapEntry? entry);
+    bool TryGet(long chunkId, [NotNullWhen(true)] out ChunkMapEntry? entry);
 
     /// <summary>Chunk ids belonging to the given file, ordered by chunk id. Empty when the file is unknown.</summary>
     IReadOnlyList<long> GetChunkIdsByFile(long fileId);
