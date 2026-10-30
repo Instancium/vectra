@@ -4,6 +4,7 @@ using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 using System.Text;
 using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
@@ -68,12 +69,17 @@ public sealed class DiskIndexReader : IIndexReader
     /// <inheritdoc />
     public async Task<ReadOnlyMemory<float>> ReadVectorsAsync(string indexDirectory, CancellationToken cancellationToken = default)
     {
+        DiskIndexManifest manifest = await ReadManifestAsync(indexDirectory, cancellationToken).ConfigureAwait(false);
+
         byte[] bytes = await ReadArtifactAsync(indexDirectory, IndexArtifactNames.Vectors, cancellationToken)
             .ConfigureAwait(false);
-        if (bytes.Length % sizeof(float) != 0)
+
+        int vectorByteSize = manifest.Dimension * sizeof(float);
+        if (vectorByteSize <= 0 || bytes.Length % vectorByteSize != 0)
         {
-            throw new InvalidDataException(
-                $"'{IndexArtifactNames.Vectors}' size {bytes.Length} is not a multiple of {sizeof(float)}.");
+            throw new IndexCorruptedException(
+                $"'{IndexArtifactNames.Vectors}' size {bytes.Length} bytes is not a multiple of vector size " +
+                $"{vectorByteSize} bytes (dimension {manifest.Dimension}).");
         }
 
         var vectors = new float[bytes.Length / sizeof(float)];
@@ -100,37 +106,48 @@ public sealed class DiskIndexReader : IIndexReader
         ArgumentOutOfRangeException.ThrowIfNegative(length);
 
         string path = ResolveArtifactPath(indexDirectory, IndexArtifactNames.Chunks);
-        await using var stream = new FileStream(
-            path,
-            FileMode.Open,
-            FileAccess.Read,
-            FileShare.Read,
-            bufferSize: 4096,
-            options: FileOptions.Asynchronous | FileOptions.SequentialScan);
-
-        if (offset + length > stream.Length)
+        FileStream stream;
+        try
         {
-            throw new InvalidDataException(
-                $"Chunk text range [{offset}, {offset + length}) exceeds '{IndexArtifactNames.Chunks}' size {stream.Length}.");
+            stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 4096,
+                options: FileOptions.Asynchronous | FileOptions.SequentialScan);
+        }
+        catch (FileNotFoundException ex)
+        {
+            throw new IndexCorruptedException($"Index artifact '{IndexArtifactNames.Chunks}' is missing in '{Path.GetFullPath(indexDirectory)}'.", ex);
         }
 
-        stream.Seek(offset, SeekOrigin.Begin);
-        var buffer = new byte[length];
-        int totalRead = 0;
-        while (totalRead < length)
+        await using (stream.ConfigureAwait(false))
         {
-            int partialRead = await stream
-                .ReadAsync(buffer.AsMemory(totalRead, length - totalRead), cancellationToken)
-                .ConfigureAwait(false);
-            if (partialRead == 0)
+            if (offset + length > stream.Length)
             {
-                throw new InvalidDataException($"Unexpected end of '{IndexArtifactNames.Chunks}'.");
+                throw new IndexCorruptedException(
+                    $"Chunk text range [{offset}, {offset + length}) exceeds '{IndexArtifactNames.Chunks}' size {stream.Length}.");
             }
 
-            totalRead += partialRead;
-        }
+            stream.Seek(offset, SeekOrigin.Begin);
+            var buffer = new byte[length];
+            int totalRead = 0;
+            while (totalRead < length)
+            {
+                int partialRead = await stream
+                    .ReadAsync(buffer.AsMemory(totalRead, length - totalRead), cancellationToken)
+                    .ConfigureAwait(false);
+                if (partialRead == 0)
+                {
+                    throw new IndexCorruptedException($"Unexpected end of '{IndexArtifactNames.Chunks}'.");
+                }
 
-        return Encoding.UTF8.GetString(buffer);
+                totalRead += partialRead;
+            }
+
+            return Encoding.UTF8.GetString(buffer);
+        }
     }
 
     private static async Task<byte[]> ReadArtifactAsync(string indexDirectory, string artifactName, CancellationToken cancellationToken)
@@ -141,11 +158,11 @@ public sealed class DiskIndexReader : IIndexReader
         {
             return await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
         }
-        catch (FileNotFoundException)
+        catch (FileNotFoundException ex)
         {
-            throw new FileNotFoundException(
+            throw new IndexCorruptedException(
                 $"Index artifact '{artifactName}' is missing in '{Path.GetFullPath(indexDirectory)}'.",
-                path);
+                ex);
         }
     }
 

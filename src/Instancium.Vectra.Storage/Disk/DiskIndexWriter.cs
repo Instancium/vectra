@@ -12,7 +12,6 @@ using Instancium.Vectra.Core.Models;
 /// </summary>
 public sealed class DiskIndexWriter : IIndexWriter
 {
-    private const string TemporarySuffix = ".tmp";
     private const int OffsetRecordSize = sizeof(long) + sizeof(int);
 
     public async Task WriteAsync(
@@ -36,15 +35,15 @@ public sealed class DiskIndexWriter : IIndexWriter
 
         ChunkPayload payload = BuildChunkPayload(chunks);
 
-        await WriteAtomicAsync(
+        await AtomicFileWriter.WriteAllBytesAtomicAsync(
             Path.Combine(fullDirectory, IndexArtifactNames.Chunks),
             payload.Texts,
             cancellationToken).ConfigureAwait(false);
-        await WriteAtomicAsync(
+        await AtomicFileWriter.WriteAllBytesAtomicAsync(
             Path.Combine(fullDirectory, IndexArtifactNames.Offsets),
             payload.Offsets,
             cancellationToken).ConfigureAwait(false);
-        await WriteAtomicAsync(
+        await AtomicFileWriter.WriteAllBytesAtomicAsync(
             Path.Combine(fullDirectory, IndexArtifactNames.Vectors),
             BuildVectorPayload(chunks, request.Manifest.Dimension),
             cancellationToken).ConfigureAwait(false);
@@ -101,7 +100,7 @@ public sealed class DiskIndexWriter : IIndexWriter
                 chunks[i].PageNumber,
                 offset,
                 encoded[i].Length,
-                IsActive: true);
+                IsActive: chunks[i].IsActive);
             offset += encoded[i].Length;
             cursor += encoded[i].Length;
         }
@@ -156,33 +155,7 @@ public sealed class DiskIndexWriter : IIndexWriter
     }
 
     private static Task WriteJsonAtomicAsync<T>(string targetPath, T value, CancellationToken cancellationToken) =>
-        WriteAtomicAsync(targetPath, DiskIndexJson.SerializeToUtf8Bytes(value), cancellationToken);
-
-    private static async Task WriteAtomicAsync(string targetPath, byte[] payload, CancellationToken cancellationToken)
-    {
-        string temporaryPath = targetPath + TemporarySuffix;
-        try
-        {
-            await File.WriteAllBytesAsync(temporaryPath, payload, cancellationToken).ConfigureAwait(false);
-            File.Move(temporaryPath, targetPath, overwrite: true);
-        }
-        catch
-        {
-            TryDelete(temporaryPath);
-            throw;
-        }
-    }
-
-    private static void TryDelete(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-        }
-    }
+        AtomicFileWriter.WriteAllBytesAtomicAsync(targetPath, DiskIndexJson.SerializeToUtf8Bytes(value), cancellationToken);
 
     private sealed record ChunkPayload(byte[] Texts, byte[] Offsets, ChunkMapEntryDto[] ChunkMap);
 }

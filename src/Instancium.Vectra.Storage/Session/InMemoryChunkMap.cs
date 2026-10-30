@@ -1,5 +1,6 @@
 namespace Instancium.Vectra.Storage.Session;
 
+using System.Diagnostics.CodeAnalysis;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 
@@ -59,7 +60,7 @@ public sealed class InMemoryChunkMap : IChunkMap
     }
 
     /// <inheritdoc />
-    public bool TryGet(long chunkId, out ChunkMapEntry? entry) =>
+    public bool TryGet(long chunkId, [NotNullWhen(true)] out ChunkMapEntry? entry) =>
         _byChunkId.TryGetValue(chunkId, out entry);
 
     /// <inheritdoc />

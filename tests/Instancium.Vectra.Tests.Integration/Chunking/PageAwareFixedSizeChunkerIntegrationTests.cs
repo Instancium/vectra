@@ -24,7 +24,7 @@ public sealed class PageAwareFixedSizeChunkerIntegrationTests
 
         Assert.True(File.Exists(corpusPath), $"Corpus PDF not found: {corpusPath}");
 
-        var extractor = new PdfTextExtractor();
+        var extractor = new PdfContentExtractor();
         var pages = await extractor.ExtractAsync(new TextExtractionRequest(corpusPath, 1, 20));
 
         var chunker = new PageAwareFixedSizeChunker(new TextChunkingOptions(ChunkSize, Overlap));

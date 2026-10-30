@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IInstanciumDirectoryResolver, InstanciumDirectoryResolver>();
         services.AddSingleton<IIndexWriter, DiskIndexWriter>();
         services.AddSingleton<IIndexReader, DiskIndexReader>();
+        services.AddSingleton<IFileStateStore, DiskFileStateStore>();
         services.AddSingleton<IVectraIndexSession>(provider => new VectraIndexSession(
             provider.GetRequiredService<IIndexReader>(),
             provider.GetRequiredService<IVectorStore>()));

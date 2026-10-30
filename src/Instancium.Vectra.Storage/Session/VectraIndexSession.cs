@@ -1,6 +1,7 @@
 namespace Instancium.Vectra.Storage.Session;
 
 using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
@@ -68,7 +69,7 @@ public sealed class VectraIndexSession : IVectraIndexSession
 
         ValidateConsistency(manifest, fileStates, chunkEntries, vectors.Length);
 
-        await LoadVectorsAsync(manifest.Dimension, chunkEntries, vectors, cancellationToken).ConfigureAwait(false);
+        LoadVectors(manifest.Dimension, chunkEntries, vectors);
 
         _indexDirectory = fullDirectory;
         _manifest = manifest;
@@ -142,16 +143,18 @@ public sealed class VectraIndexSession : IVectraIndexSession
         }
     }
 
-    private async Task LoadVectorsAsync(
-        int dimension,
-        IReadOnlyList<ChunkMapEntry> chunkEntries,
-        ReadOnlyMemory<float> vectors,
-        CancellationToken cancellationToken)
+    private void LoadVectors(int dimension, IReadOnlyList<ChunkMapEntry> chunkEntries, ReadOnlyMemory<float> vectors)
     {
         for (int i = 0; i < chunkEntries.Count; i++)
         {
             ChunkMapEntry entry = chunkEntries[i];
+            if (!entry.IsActive)
+            {
+                continue;
+            }
+
             ReadOnlyMemory<float> vector = vectors.Slice(i * dimension, dimension);
+            // Snippet is intentionally empty: text is hydrated lazily via IChunkTextReader (stage 3).
             _vectorStore.Upsert(entry.ChunkId, entry.FileId, entry.PageNumber, string.Empty, vector);
         }
     }
@@ -159,6 +162,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
     private static InvalidOperationException SessionNotOpen() =>
         new("The index session is not open. Call OpenAsync first.");
 
-    private static InvalidOperationException Corrupted(string details) =>
+    private static IndexCorruptedException Corrupted(string details) =>
         new($"The index is corrupted: {details} Run 'vectra doctor' for diagnostics.");
 }

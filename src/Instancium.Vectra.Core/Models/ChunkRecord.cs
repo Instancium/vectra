@@ -7,7 +7,7 @@ namespace Instancium.Vectra.Core.Models;
 /// </summary>
 public sealed record ChunkRecord
 {
-    public ChunkRecord(long chunkId, long fileId, int pageNumber, string text, ReadOnlyMemory<float> vector)
+    public ChunkRecord(long chunkId, long fileId, int pageNumber, string text, ReadOnlyMemory<float> vector, bool isActive = true)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(chunkId, 1L);
         ArgumentOutOfRangeException.ThrowIfLessThan(fileId, 1L);
@@ -23,6 +23,7 @@ public sealed record ChunkRecord
         PageNumber = pageNumber;
         Text = text;
         Vector = vector;
+        IsActive = isActive;
     }
 
     public long ChunkId { get; }
@@ -30,4 +31,5 @@ public sealed record ChunkRecord
     public int PageNumber { get; }
     public string Text { get; }
     public ReadOnlyMemory<float> Vector { get; }
+    public bool IsActive { get; }
 }

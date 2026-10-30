@@ -25,8 +25,8 @@ public sealed class ChatHubRpcNames
     /// <summary>Guide v1.4, Session Lifecycle: JoinSession(sessionId, repoId).</summary>
     public string JoinSession { get; set; } = "JoinSession";
 
-    /// <summary>Guide v1.4, Ephemeral Sessions: MarkSessionAsEphemeral(sessionId).</summary>
-    public string MarkSessionAsEphemeral { get; set; } = "MarkSessionAsEphemeral";
+    /// <summary>Guide v1.5, Session Lifecycle: LeaveSession(sessionId) — graceful release without dropping the native context.</summary>
+    public string LeaveSession { get; set; } = "LeaveSession";
 
     /// <summary>Guide v1.4, Chat Streaming: SendPromptDelta(sessionId, message); returns before generation completes.</summary>
     public string SendPromptDelta { get; set; } = "SendPromptDelta";

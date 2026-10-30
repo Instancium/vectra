@@ -19,6 +19,9 @@ public sealed class RagService : IRagService
     private readonly IVectorSearchEngine _searchEngine;
     private readonly IChatCompletionClient _chatClient;
     private readonly ILogger<RagService> _logger;
+    private readonly IChunkMap? _chunkMap;
+    private readonly IChunkTextReader? _chunkTextReader;
+    private readonly IVectraIndexSession? _indexSession;
 
     // Stage 1 recall window: in-process brute-force SIMD scan is ~1 ms at MVP scale,
     // so we afford the classic top-100 recall window before reranking.
@@ -31,12 +34,18 @@ public sealed class RagService : IRagService
         IInferenceEngine embeddingEngine,
         IVectorSearchEngine searchEngine,
         IChatCompletionClient chatClient,
-        ILogger<RagService>? logger = null)
+        ILogger<RagService>? logger = null,
+        IChunkMap? chunkMap = null,
+        IChunkTextReader? chunkTextReader = null,
+        IVectraIndexSession? indexSession = null)
     {
         _embeddingEngine = embeddingEngine ?? throw new ArgumentNullException(nameof(embeddingEngine));
         _searchEngine = searchEngine ?? throw new ArgumentNullException(nameof(searchEngine));
         _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
         _logger = logger ?? NullLogger<RagService>.Instance;
+        _chunkMap = chunkMap;
+        _chunkTextReader = chunkTextReader;
+        _indexSession = indexSession;
     }
 
     public async Task<RagRetrievalResult> RetrieveAsync(
@@ -56,10 +65,22 @@ public sealed class RagService : IRagService
             Math.Max(RecallWindow, request.TopK),
             cancellationToken).ConfigureAwait(false);
 
-        // Stage 2 (precision): sparse lexical rerank with candidate-window IDF weighting.
-        IReadOnlyList<SearchResult> reranked = RerankLexically(request.Question, candidates, request.TopK);
+        bool hasInlineSnippets = !string.IsNullOrEmpty(candidates[0].Snippet);
+        IReadOnlyList<SearchResult> selected;
 
-        List<RagContextChunk> context = reranked
+        if (hasInlineSnippets)
+        {
+            selected = RerankLexically(request.Question, candidates, request.TopK);
+        }
+        else
+        {
+            IReadOnlyList<SearchResult> topKCandidates = candidates.Take(request.TopK).ToList();
+            IReadOnlyList<SearchResult> hydrated = await HydrateTopKSnippetsAsync(topKCandidates, cancellationToken)
+                .ConfigureAwait(false);
+            selected = RerankLexically(request.Question, hydrated, request.TopK);
+        }
+
+        List<RagContextChunk> context = selected
             .Select(match => new RagContextChunk(match.ChunkId, match.PageNumber, match.Score, match.Snippet))
             .ToList();
 
@@ -69,6 +90,74 @@ public sealed class RagService : IRagService
             context.Count);
 
         return new RagRetrievalResult(request.Question, context);
+    }
+
+    /// <summary>
+    /// Reads full chunk text for Top-K results whose snippets are empty (disk index flow).
+    /// In the in-memory flow snippets are already populated, so no read happens.
+    /// </summary>
+    private async Task<IReadOnlyList<SearchResult>> HydrateTopKSnippetsAsync(
+        IReadOnlyList<SearchResult> results,
+        CancellationToken cancellationToken)
+    {
+        if (results.Count == 0)
+        {
+            return results;
+        }
+
+        if (_indexSession is not null)
+        {
+            var hydratedViaSession = results.ToList();
+            for (int i = 0; i < hydratedViaSession.Count; i++)
+            {
+                if (string.IsNullOrEmpty(hydratedViaSession[i].Snippet))
+                {
+                    string text = await _indexSession.GetChunkTextAsync(hydratedViaSession[i].ChunkId, cancellationToken)
+                        .ConfigureAwait(false);
+                    hydratedViaSession[i] = hydratedViaSession[i] with { Snippet = text };
+                }
+            }
+
+            return hydratedViaSession;
+        }
+
+        if (_chunkMap is null || _chunkTextReader is null)
+        {
+            return results;
+        }
+
+        var ranges = new List<ChunkTextRange>(results.Count);
+        var indices = new List<int>(results.Count);
+        for (int i = 0; i < results.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(results[i].Snippet))
+            {
+                continue;
+            }
+
+            if (_chunkMap.TryGet(results[i].ChunkId, out ChunkMapEntry? entry) && entry is not null)
+            {
+                ranges.Add(new ChunkTextRange(entry.Offset, entry.Length));
+                indices.Add(i);
+            }
+        }
+
+        if (ranges.Count == 0)
+        {
+            return results;
+        }
+
+        IReadOnlyList<string> texts = await _chunkTextReader.ReadBatchAsync(ranges, cancellationToken)
+            .ConfigureAwait(false);
+
+        var hydrated = results.ToList();
+        for (int i = 0; i < indices.Count; i++)
+        {
+            SearchResult original = hydrated[indices[i]];
+            hydrated[indices[i]] = original with { Snippet = texts[i] };
+        }
+
+        return hydrated;
     }
 
     /// <summary>

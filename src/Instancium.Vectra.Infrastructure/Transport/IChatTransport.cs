@@ -16,7 +16,7 @@ internal interface IChatTransport : IAsyncDisposable
 
     Task JoinSessionAsync(string sessionId, string repoId, CancellationToken cancellationToken = default);
 
-    Task MarkSessionAsEphemeralAsync(string sessionId, CancellationToken cancellationToken = default);
+    Task LeaveSessionAsync(string sessionId, CancellationToken cancellationToken = default);
 
     Task DestroySessionAsync(string sessionId, CancellationToken cancellationToken = default);
 
