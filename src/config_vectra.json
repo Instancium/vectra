@@ -2,7 +2,7 @@
   "Vectra": {
     "Gateways": {
       "Embedding": {
-        "Url": "http://localhost:5001",
+        "Url": "http://localhost:5000",
         "HubPath": "/hub/gateway",
         "RepoId": "qwen3-embedding-0.6b",
         "ApiKey": "ChangeMeSuperSecureAdminApiKey123",

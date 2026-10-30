@@ -4,7 +4,7 @@ public sealed class EmbeddingGatewayOptions
 {
     public const string SectionName = "Vectra:Gateways:Embedding";
 
-    public string Url { get; set; } = "http://localhost:5001";
+    public string Url { get; set; } = "http://localhost:5000";
 
     public string HubPath { get; set; } = "/hub/gateway";
 
