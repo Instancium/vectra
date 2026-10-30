@@ -845,7 +845,7 @@ internal static class VectraCliConfig
     public const string ApiKeyVariable = "VECTRA_GATEWAY_API_KEY";
     public const string GatewayUrlVariable = "VECTRA_EMBEDDING_GATEWAY_URL";
     public const string ChatGatewayUrlVariable = "VECTRA_CHAT_GATEWAY_URL";
-    public const string DefaultGatewayUrl = "http://localhost:5001";
+    public const string DefaultGatewayUrl = "http://localhost:5000";
     public const string DefaultChatGatewayUrl = "http://localhost:5000";
 
     public static string RepoId => _configuration["Vectra:Gateways:Embedding:RepoId"] ?? "qwen3-embedding-0.6b";

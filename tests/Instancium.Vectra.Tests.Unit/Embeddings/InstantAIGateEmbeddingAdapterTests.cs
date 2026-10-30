@@ -233,8 +233,25 @@ public class InstantAIGateEmbeddingAdapterTests
             {
                 RepoId = LastRepoId ?? string.Empty,
                 ContextSize = _contextSize,
-                EmbeddingDimension = _dimension
+                EmbeddingDimension = _dimension,
+                IsEmbedding = true
             });
+
+        public Task<IReadOnlyList<NativeModelDetails>> GetLoadedModelsDetailsAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var details = new[]
+            {
+                new NativeModelDetails
+                {
+                    RepoId = LastRepoId ?? string.Empty,
+                    ContextSize = _contextSize,
+                    EmbeddingDimension = _dimension,
+                    IsEmbedding = true
+                }
+            };
+            return Task.FromResult<IReadOnlyList<NativeModelDetails>>(details);
+        }
 
         public ValueTask DisposeAsync() => default;
     }

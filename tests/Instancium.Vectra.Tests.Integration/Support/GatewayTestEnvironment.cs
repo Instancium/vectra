@@ -28,7 +28,7 @@ public static class GatewayTestEnvironment
     public static string GatewayUrl =>
         Environment.GetEnvironmentVariable(GatewayUrlVariable)
         ?? Configuration["Vectra:Gateways:Embedding:Url"]
-        ?? "http://localhost:5001";
+        ?? "http://localhost:5000";
 
     public static string EmbeddingRepoId =>
         Environment.GetEnvironmentVariable("VECTRA_EMBEDDING_REPO_ID")

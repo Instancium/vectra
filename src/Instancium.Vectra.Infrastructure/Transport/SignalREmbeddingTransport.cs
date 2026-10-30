@@ -77,6 +77,15 @@ internal sealed class SignalREmbeddingTransport : IEmbeddingTransport
             cancellationToken);
     }
 
+    public async Task<IReadOnlyList<NativeModelDetails>> GetLoadedModelsDetailsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        IEnumerable<NativeModelDetails> details = await _connection.InvokeAsync<IEnumerable<NativeModelDetails>>(
+            "GetLoadedModelsDetailsAsync",
+            cancellationToken);
+        return details.ToArray();
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)

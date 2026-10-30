@@ -8,6 +8,7 @@ using Instancium.Vectra.Infrastructure.Configuration;
 using Instancium.Vectra.Infrastructure.Transport;
 using InstantAIGate.Core.Dtos.Config;
 using InstantAIGate.Core.Dtos.Inference;
+using InstantAIGate.Core.Dtos.Status;
 using InstantAIGate.Core.Interfaces.Inference;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -143,10 +144,19 @@ public sealed class InstantAIGateEmbeddingAdapter : IInferenceEngine
             return cached;
         }
 
-        var details = await _transport.GetActiveModelDetailsAsync(ct);
-        int contextSize = details.ContextSize;
-        _contextSizeByRepo[modelId] = contextSize;
-        return contextSize;
+        IReadOnlyList<NativeModelDetails> loadedModels = await _transport.GetLoadedModelsDetailsAsync(ct).ConfigureAwait(false);
+        NativeModelDetails? target = loadedModels.FirstOrDefault(m => string.Equals(m.RepoId, modelId, StringComparison.Ordinal))
+            ?? loadedModels.FirstOrDefault(m => m.IsEmbedding);
+        if (target is null)
+        {
+            _logger.LogWarning(
+                "No loaded model details available for '{ModelId}'; skipping client-side token budget validation.",
+                modelId);
+            return 0;
+        }
+
+        _contextSizeByRepo[modelId] = target.ContextSize;
+        return target.ContextSize;
     }
 
     private async Task EnsureConnectedAsync(CancellationToken ct)

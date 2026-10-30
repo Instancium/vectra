@@ -18,4 +18,6 @@ internal interface IEmbeddingTransport : IAsyncDisposable
     Task<GatewayStatusDetails> GetGatewayStatusAsync(CancellationToken cancellationToken = default);
 
     Task<NativeModelDetails> GetActiveModelDetailsAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<NativeModelDetails>> GetLoadedModelsDetailsAsync(CancellationToken cancellationToken = default);
 }
