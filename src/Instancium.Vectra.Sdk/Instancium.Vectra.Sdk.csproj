@@ -1,54 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <!-- Package Identity & Versioning -->
-    <PackageId>Instancium.Vectra.Sdk</PackageId>
-    <Version>1.1.0-rc.5</Version>
-    <Authors>Instancium</Authors>
-    <Company>Instancium</Company>
-    <Product>Instancium Vectra</Product>
-    <Title>Instancium Vectra SDK</Title>
-    <Description>High-performance local vector search, document indexing, and profile isolation SDK for the Instancium ecosystem.</Description>
-    <PackageTags>vector-search;embeddings;indexing;rag;pdf;signalr;instancium;semantic-search</PackageTags>
-    <Copyright>Copyright (c) 2026 Instancium. All rights reserved.</Copyright>
-    <!-- Licensing & Repository -->
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/instancium/vectra</RepositoryUrl>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageProjectUrl>https://github.com/instancium/vectra</PackageProjectUrl>
-    <!-- Packaging & Documentation Artifacts -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
-    <ProjectReference Include="..\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" />
-    <ProjectReference Include="..\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" />
-    <ProjectReference Include="..\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" />
-    <ProjectReference Include="..\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<PackageId>Instancium.Vectra.Sdk</PackageId>
+		<Version>1.1.0-rc.5</Version>
+		<Authors>Instancium</Authors>
+		<Company>Instancium</Company>
+		<Product>Instancium Vectra</Product>
+		<Title>Instancium Vectra SDK</Title>
+		<Description>High-performance local vector search, document indexing, and profile isolation SDK for the Instancium ecosystem.</Description>
+		<PackageTags>vector-search;embeddings;indexing;rag;pdf;signalr;instancium;semantic-search</PackageTags>
+		<Copyright>Copyright (c) 2026 Instancium. All rights reserved.</Copyright>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+
+	
+		<TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeInternalProjectsInPackage</TargetsForTfmSpecificBuildOutput>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="InstantAIGate.Core" Version="1.5.3" />
+		<PackageReference Include="PdfPig" Version="0.1.16" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" PrivateAssets="all" />
+		<ProjectReference Include="..\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" PrivateAssets="all" />
+		<ProjectReference Include="..\Instancium.Vectra.Search\Instancium.Vectra.Search.csproj" PrivateAssets="all" />
+		<ProjectReference Include="..\Instancium.Vectra.Indexing\Instancium.Vectra.Indexing.csproj" PrivateAssets="all" />
+		<ProjectReference Include="..\Instancium.Vectra.Infrastructure\Instancium.Vectra.Infrastructure.csproj" PrivateAssets="all" />
+	</ItemGroup>
+
+
+	<Target Name="IncludeInternalProjectsInPackage" DependsOnTargets="ResolveReferences">
+		<ItemGroup>
+			<BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Core.dll" />
+			<BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Storage.dll" />
+			<BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Search.dll" />
+			<BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Indexing.dll" />
+			<BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Infrastructure.dll" />
+		</ItemGroup>
+	</Target>
 </Project>
