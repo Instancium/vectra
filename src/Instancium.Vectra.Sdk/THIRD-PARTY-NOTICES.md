@@ -6,7 +6,7 @@ The following list acknowledges third-party software components utilized across 
 ---
 
 ### 1. PdfPig
-- **Project URL:** https://github.com/PdfPig/PdfPig
+- **Project URL:** https://github.com/UglyToad/PdfPig
 - **License:** Apache License 2.0
 - **Usage:** Document text extraction and page stream normalization in `Instancium.Vectra.Indexing`.
 
