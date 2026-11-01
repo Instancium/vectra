@@ -176,10 +176,12 @@ else
 
 This library relies on third-party open-source components, including `PdfPig`, `InstantAIGate.Core`, and `Microsoft.AspNetCore.SignalR.Client`. For full details regarding licenses, copyrights, and dependencies, please refer to:
 
-* [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
+- [THIRD-PARTY-NOTICES.md](https://github.com/Instancium/vectra/blob/main/THIRD-PARTY-NOTICES.md)
 
 ---
 
 ## License
+
 Copyright (c) 2026 Instancium™ (https://instancium.com). All rights reserved.
-`Instancium.Vectra.Sdk` is distributed under the **Apache License 2.0**. See the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+
+`Instancium.Vectra.Sdk` is distributed under the **Apache License 2.0**. See the [LICENSE](https://github.com/Instancium/vectra/blob/main/LICENSE.txt) file for details.
