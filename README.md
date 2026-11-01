@@ -299,35 +299,15 @@ The bench command:
 | Testing | xUnit 2.9.3, coverlet |
 | Architecture Tests | Reflection-based assembly reference validation |
 
----
-
-## Solution Layout
-
-```
-Instancium.Vectra.slnx
-├── src/
-│   ├── Instancium.Vectra.Core            # Contracts, models, exceptions
-│   ├── Instancium.Vectra.Indexing        # PDF extraction, chunking, pipeline
-│   ├── Instancium.Vectra.Infrastructure  # SignalR adapters (embedding + chat)
-│   ├── Instancium.Vectra.Storage         # In-memory vector store
-│   ├── Instancium.Vectra.Search          # SIMD brute-force search engine
-│   ├── Instancium.Vectra.Rag             # RAG service, prompt builder
-│   └── Instancium.Vectra.Cli             # REPL + one-shot CLI
-├── tests/
-│   ├── Instancium.Vectra.Tests.Unit
-│   ├── Instancium.Vectra.Tests.Integration
-│   ├── Instancium.Vectra.Tests.Arch
-│   ├── assets/pdf/                       # sample-2pages.pdf, test-doc.pdf
-│   └── assets/gold/queries.json
-├── artifacts/                            # bench-report.md (generated)
-├── config_vectra.json
-└── README.md
-```
-
----
 
 ## License
+Copyright (c) 2026 Instancium™ (https://instancium.com). All rights reserved.
 
-Apache License 2.0
+### Source Code License
+This project's source code is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE.txt) file for the full text.
 
-Part of the **Instancium Ecosystem**.
+### Third-Party Dependencies
+For a comprehensive list of dependencies, models, and their respective licenses, please refer to the [Third-Party Notices & Licenses](THIRD-PARTY-NOTICES.md) document.
+
+### Branding & Trademark
+The "InstantAIGate" name, logos, and branding assets (in the `media` directory) are the exclusive property of Instancium and are licensed under the [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license. They may be used solely to refer to this original project without modification or commercial implication.

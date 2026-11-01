@@ -5,6 +5,7 @@
     <Project Path="src/Instancium.Vectra.Indexing/Instancium.Vectra.Indexing.csproj" />
     <Project Path="src/Instancium.Vectra.Infrastructure/Instancium.Vectra.Infrastructure.csproj" />
     <Project Path="src/Instancium.Vectra.Rag/Instancium.Vectra.Rag.csproj" />
+    <Project Path="src/Instancium.Vectra.Sdk/Instancium.Vectra.Sdk.csproj" />
     <Project Path="src/Instancium.Vectra.Search/Instancium.Vectra.Search.csproj" />
     <Project Path="src/Instancium.Vectra.Storage/Instancium.Vectra.Storage.csproj" />
   </Folder>
