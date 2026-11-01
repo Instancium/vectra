@@ -47,4 +47,11 @@
       <BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Infrastructure.dll" />
     </ItemGroup>
   </Target>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	
 </Project>
