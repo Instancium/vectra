@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <!-- Package Identity & Versioning -->
     <PackageId>Instancium.Vectra.Sdk</PackageId>
-    <Version>1.1.0-rc.3</Version>
+    <Version>1.1.0-rc.4</Version>
     <Authors>Instancium</Authors>
     <Company>Instancium</Company>
     <Product>Instancium Vectra</Product>
