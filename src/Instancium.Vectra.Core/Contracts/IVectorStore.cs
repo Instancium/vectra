@@ -7,12 +7,16 @@ using Instancium.Vectra.Core.Models;
 /// </summary>
 public interface IVectorStore
 {
-    void Upsert(long chunkId, long fileId, int pageNumber, string snippet, ReadOnlyMemory<float> vector);
+    void Upsert(long chunkId, long fileId, int pageNumber, string? snippet, ReadOnlyMemory<float> vector);
 
     int Count { get; }
 
     int Dimension { get; }
 
+    /// <summary>
+    /// Returns a span over the immutable COW vector array. The span is safe because the
+    /// backing array is never mutated in place; writes replace the array atomically.
+    /// </summary>
     ReadOnlySpan<float> GetVectorsSpan();
 
     IReadOnlyList<ChunkMetadata> GetMetadata();

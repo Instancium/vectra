@@ -46,7 +46,8 @@ public sealed class VectraIndexSessionTests : IDisposable
 
         var searchEngine = new InMemoryVectorSearchEngine(session.VectorStore);
         IReadOnlyList<VectorSearchHit> results = await searchEngine.SearchAsync(
-            new float[] { 0.0f, 1.0f, 0.0f, 0.0f }, topK: 3);
+            new SearchQuery(new float[] { 0.0f, 1.0f, 0.0f, 0.0f }),
+            new SearchOptions(topK: 3));
 
         Assert.NotEmpty(results);
         VectorSearchHit top1 = results[0];

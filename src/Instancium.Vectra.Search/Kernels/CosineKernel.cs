@@ -7,11 +7,9 @@ using Instancium.Vectra.Core.Models;
 /// Cosine similarity kernel.
 ///
 /// IMPORTANT: This implementation assumes that input vectors are already L2-normalized.
-/// For Cosine collections, <see cref="Storage.InMemoryVectraSnapshot"/> normalizes all vectors
-/// at snapshot creation time, reducing Cosine to DotProduct mathematically.
-///
-/// TODO [P5]: Move normalization from snapshot creation to VectraCollection.AddAsync.
-/// This will allow updates without full snapshot rebuild and reduce memory overhead.
+/// For Cosine collections, normalization is the responsibility of the write path
+/// (VectraCollection.AddAsync, introduced in P5) and of the query path (interim engine
+/// normalizes the query). The snapshot (Storage layer) no longer normalizes.
 /// </summary>
 public sealed class CosineKernel : ISimilarityKernel
 {
@@ -21,7 +19,6 @@ public sealed class CosineKernel : ISimilarityKernel
 
     public float Score(ReadOnlySpan<float> query, ReadOnlySpan<float> candidate)
     {
-        // Vectors are pre-normalized by InMemoryVectraSnapshot, so Cosine == DotProduct.
         return _dotProductKernel.Score(query, candidate);
     }
 }

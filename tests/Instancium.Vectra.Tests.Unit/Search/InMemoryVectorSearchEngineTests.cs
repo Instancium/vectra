@@ -1,6 +1,7 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Search;
 
+using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
@@ -18,7 +19,10 @@ public sealed class InMemoryVectorSearchEngineTests
         store.Upsert(1, 10, 5, "A", target);
         store.Upsert(2, 10, 6, "B", Normalize(new float[] { 0.1f, 0.3f, 0.5f, 0.7f }));
 
-        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(target, 1);
+        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(
+            new SearchQuery(target),
+            new SearchOptions(topK: 1));
+
         VectorSearchHit first = Assert.Single(result);
         Assert.Equal(1, first.VectorId);
         Assert.Equal("A", first.Payload);
@@ -36,7 +40,10 @@ public sealed class InMemoryVectorSearchEngineTests
         store.Upsert(7, 1, 1, "seven", vector);
         store.Upsert(3, 1, 1, "three", vector);
 
-        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(vector, 2);
+        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(
+            new SearchQuery(vector),
+            new SearchOptions(topK: 2));
+
         Assert.Equal(new long[] { 3, 7 }, result.Select(hit => hit.VectorId).ToArray());
     }
 
@@ -44,7 +51,9 @@ public sealed class InMemoryVectorSearchEngineTests
     public async Task SearchAsync_ShouldReturnEmptyWhenStoreIsEmpty()
     {
         var search = new InMemoryVectorSearchEngine(new InMemoryVectorStore());
-        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(new float[] { 1f, 2f }, 3);
+        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(
+            new SearchQuery(new float[] { 1f, 2f }),
+            new SearchOptions(topK: 3));
         Assert.Empty(result);
     }
 
@@ -54,7 +63,23 @@ public sealed class InMemoryVectorSearchEngineTests
         var store = new InMemoryVectorStore();
         store.Upsert(1, 1, 1, "A", new float[] { 1f, 2f, 3f });
         var search = new InMemoryVectorSearchEngine(store);
-        await Assert.ThrowsAsync<ArgumentException>(() => search.SearchAsync(new float[] { 1f }, 1));
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => search.SearchAsync(new SearchQuery(new float[] { 1f }), new SearchOptions(topK: 1)));
+    }
+
+    [Fact]
+    public async Task SearchAsync_LegacyOverload_ShouldDelegateToPrimaryContract()
+    {
+        var store = new InMemoryVectorStore();
+        IVectorSearchEngine search = new InMemoryVectorSearchEngine(store);
+        float[] vector = Normalize(new float[] { 1f, 0f });
+        store.Upsert(1, 1, 1, "one", vector);
+
+        IReadOnlyList<VectorSearchHit> result = await search.SearchAsync(vector, 1);
+
+        VectorSearchHit first = Assert.Single(result);
+        Assert.Equal(1, first.VectorId);
+        Assert.Equal("one", first.Payload);
     }
 
     private static float[] Normalize(float[] vector)
@@ -69,5 +94,3 @@ public sealed class InMemoryVectorSearchEngineTests
         return vector.Select(value => value / norm).ToArray();
     }
 }
-
-

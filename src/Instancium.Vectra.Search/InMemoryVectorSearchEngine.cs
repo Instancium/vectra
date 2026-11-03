@@ -1,25 +1,28 @@
 #nullable enable
 namespace Instancium.Vectra.Search;
 
+using System.Diagnostics;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search.Kernels;
 
 /// <summary>
-/// In-memory vector search engine: thin facade over <see cref="ISearchKernel"/>.
+/// In-memory vector search engine: thin facade over <see cref="ISearchKernel"/> with optional
+/// <see cref="IReranker"/> support (P4 refactor).
 ///
-/// P4 refactor: the interim P3 inline dot-product scan is replaced by a metric-aware,
-/// SIMD-accelerated kernel. The engine depends ONLY on Core contracts: the snapshot is
-/// obtained from <see cref="IVectorStore.CreateSnapshot"/> (implemented in Storage and
-/// injected via DI), which keeps the architecture rule
+/// The engine depends ONLY on Core contracts: the snapshot is obtained from
+/// <see cref="IVectorStore.CreateSnapshot"/> (implemented in Storage and injected via DI),
+/// which keeps the architecture rule
 /// "Search references Core + System + Microsoft.Extensions.* only" intact.
 ///
 /// Flow: snapshot ← store → kernel resolve by metric → brute-force scan (overfetch ≥ topK,
-/// deterministic tie-break) → payload hydration from store metadata → top-K.
+/// deterministic tie-break) → optional rerank → payload hydration from store metadata → top-K.
 ///
 /// TODO [P5]: metric must come from CollectionOptions owned by VectraCollection, and payload
 /// must hydrate lazily through IVectraCollection.GetPayloadTextAsync; until then the interim
 /// engine assumes Cosine (legacy default) and hydrates from IVectorStore.GetMetadata().
+/// Query normalization for Cosine is performed here to satisfy the CosineKernel contract;
+/// in P5 this responsibility moves to VectraCollection.SearchAsync.
 /// </summary>
 public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
 {
@@ -31,12 +34,14 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
         _store = store;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<VectorSearchHit>> SearchAsync(
-        ReadOnlyMemory<float> queryVector,
-        int topK,
+        SearchQuery query,
+        SearchOptions options,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(topK, 1);
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(options);
 
         int dimension = _store.Dimension;
         if (dimension == 0)
@@ -44,26 +49,72 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
             return Array.Empty<VectorSearchHit>();
         }
 
-        if (queryVector.Length != dimension)
+        if (query.Vector.Length != dimension)
         {
             throw new ArgumentException(
-                "Query dimension " + queryVector.Length + " does not match store dimension " + dimension + ".",
-                nameof(queryVector));
+                "Query dimension " + query.Vector.Length + " does not match store dimension " + dimension + ".",
+                nameof(query));
         }
 
         const SimilarityMetric metric = SimilarityMetric.Cosine;
 
-        IVectraSnapshot snapshot = _store.CreateSnapshot(metric);
-        ISearchKernel searchKernel = new BruteForceSearchKernel(ResolveKernel(metric));
+        // CosineKernel operates on L2-normalized vectors. Until VectraCollection (P5) takes
+        // ownership of normalization, the interim engine normalizes the query here.
+        ReadOnlyMemory<float> queryVector = Normalize(query.Vector);
 
-        var query = new SearchQuery(queryVector);
-        var options = new SearchOptions(topK: topK);
+        IVectraSnapshot snapshot = _store.CreateSnapshot(metric);
+        ISearchKernel searchKernel = new BruteForceSearchKernel(SimilarityKernelFactory.Create(metric));
+        var normalizedQuery = new SearchQuery(queryVector, query.QueryText, query.Filter);
 
         IReadOnlyList<VectorSearchHit> candidates = await searchKernel
-            .SearchAsync(snapshot, query, options, cancellationToken)
+            .SearchAsync(snapshot, normalizedQuery, options, cancellationToken)
             .ConfigureAwait(false);
 
-        return HydratePayloads(candidates, topK);
+        SearchDiagnostics? recallDiagnostics = null;
+        if (options.IncludeDiagnostics && candidates.Count > 0)
+        {
+            recallDiagnostics = candidates[0].Diagnostics;
+        }
+
+        IReadOnlyList<VectorSearchHit> finalHits = candidates;
+        double rerankTimeMs = 0.0;
+
+        if (options.Reranker is not null)
+        {
+            var rerankStopwatch = Stopwatch.StartNew();
+            IReadOnlyList<VectorSearchHit> reranked = await options.Reranker
+                .RerankAsync(query, candidates, cancellationToken)
+                .ConfigureAwait(false);
+            rerankTimeMs = rerankStopwatch.Elapsed.TotalMilliseconds;
+
+            ValidateRerankerOutput(candidates, reranked);
+            finalHits = reranked;
+        }
+
+        IReadOnlyList<VectorSearchHit> hydrated = HydratePayloads(finalHits, options.TopK);
+
+        if (options.IncludeDiagnostics)
+        {
+            hydrated = AttachDiagnostics(hydrated, recallDiagnostics, rerankTimeMs, options.Reranker is not null);
+        }
+
+        return hydrated;
+    }
+
+    private static void ValidateRerankerOutput(
+        IReadOnlyList<VectorSearchHit> candidates,
+        IReadOnlyList<VectorSearchHit> reranked)
+    {
+        var candidateIds = new HashSet<long>(candidates.Select(hit => hit.VectorId));
+
+        foreach (VectorSearchHit hit in reranked)
+        {
+            if (!candidateIds.Contains(hit.VectorId))
+            {
+                throw new InvalidOperationException(
+                    "Reranker returned a vector id " + hit.VectorId + " that was not present in the candidate set.");
+            }
+        }
     }
 
     private IReadOnlyList<VectorSearchHit> HydratePayloads(
@@ -99,14 +150,58 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
         return result;
     }
 
-    private static ISimilarityKernel ResolveKernel(SimilarityMetric metric)
+    private static IReadOnlyList<VectorSearchHit> AttachDiagnostics(
+        IReadOnlyList<VectorSearchHit> hits,
+        SearchDiagnostics? recallDiagnostics,
+        double rerankTimeMs,
+        bool rerankerUsed)
     {
-        return metric switch
+        if (!rerankerUsed)
         {
-            SimilarityMetric.Cosine => new CosineKernel(),
-            SimilarityMetric.DotProduct => new DotProductKernel(),
-            SimilarityMetric.Euclidean => new EuclideanKernel(),
-            _ => throw new ArgumentOutOfRangeException(nameof(metric), metric, "Unknown similarity metric.")
-        };
+            // BruteForceSearchKernel already populated diagnostics correctly.
+            return hits;
+        }
+
+        int scannedVectors = recallDiagnostics?.ScannedVectors ?? 0;
+        double recallTimeMs = recallDiagnostics?.RecallTimeMs ?? 0.0;
+        string? kernelUsed = recallDiagnostics?.KernelUsed;
+
+        var diagnostics = new SearchDiagnostics(scannedVectors, recallTimeMs, rerankTimeMs, kernelUsed);
+        var result = new List<VectorSearchHit>(hits.Count);
+
+        foreach (VectorSearchHit hit in hits)
+        {
+            result.Add(new VectorSearchHit(
+                hit.VectorId,
+                hit.VectorScore,
+                hit.FinalScore,
+                hit.Payload,
+                diagnostics));
+        }
+
+        return result;
+    }
+
+    private static ReadOnlyMemory<float> Normalize(ReadOnlyMemory<float> vector)
+    {
+        double sumOfSquares = 0.0;
+        foreach (float value in vector.Span)
+        {
+            sumOfSquares += (double)value * value;
+        }
+
+        float norm = (float)Math.Sqrt(sumOfSquares);
+        if (norm < 1e-12f)
+        {
+            return vector;
+        }
+
+        var normalized = new float[vector.Length];
+        for (int i = 0; i < vector.Length; i++)
+        {
+            normalized[i] = vector.Span[i] / norm;
+        }
+
+        return normalized;
     }
 }
