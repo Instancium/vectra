@@ -11,5 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Instancium.Vectra.Core\Instancium.Vectra.Core.csproj" />
+    <ProjectReference Include="..\Instancium.Vectra.Storage\Instancium.Vectra.Storage.csproj" />
   </ItemGroup>
 </Project>
