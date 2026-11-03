@@ -5,10 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <Version>1.1.0</Version>
 =======
     <Version>1.1.0-rc.7</Version>
 >>>>>>> release-prep/v1.1.0-rc.7
+=======
+    <Version>1.1.0-rc.8</Version>
+>>>>>>> release-prep/v1.1.0-rc.8
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Update="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />

@@ -1,112 +1,84 @@
+#nullable enable
 namespace Instancium.Vectra.Search;
 
-using System.Numerics;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 
+/// <summary>
+/// Interim P3 search engine: brute-force dot-product scan over the store's immutable
+/// snapshot (no locks, no per-hit allocation beyond the result list).
+///
+/// Contract (TZ §5.3): results are ordered by VectorScore descending with a deterministic
+/// tie-break by VectorId ascending; FinalScore equals VectorScore because no reranker
+/// runs at this layer.
+///
+/// P4 replaces the scoring body with ISearchKernel + IVectraSnapshot (metric-aware,
+/// SIMD-accelerated, conformance-tested against ReferenceSimilarityKernel).
+/// </summary>
 public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
 {
-    private readonly IVectorStore _vectorStore;
+    private readonly IVectorStore _store;
 
-    public InMemoryVectorSearchEngine(IVectorStore vectorStore)
+    public InMemoryVectorSearchEngine(IVectorStore store)
     {
-        _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
+        ArgumentNullException.ThrowIfNull(store);
+        _store = store;
     }
 
-    public Task<IReadOnlyList<SearchResult>> SearchAsync(
+    public Task<IReadOnlyList<VectorSearchHit>> SearchAsync(
         ReadOnlyMemory<float> queryVector,
         int topK,
         CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(topK, 1);
-        if (queryVector.Length == 0)
+
+        int dimension = _store.Dimension;
+        if (dimension == 0)
         {
-            throw new ArgumentException("Query vector cannot be empty.", nameof(queryVector));
+            return Task.FromResult<IReadOnlyList<VectorSearchHit>>(Array.Empty<VectorSearchHit>());
         }
 
-        if (_vectorStore.Count == 0)
-        {
-            return Task.FromResult<IReadOnlyList<SearchResult>>(Array.Empty<SearchResult>());
-        }
-
-        if (queryVector.Length != _vectorStore.Dimension)
+        if (queryVector.Length != dimension)
         {
             throw new ArgumentException(
-                $"Query dimension mismatch. Expected {_vectorStore.Dimension} but received {queryVector.Length}.",
+                "Query dimension " + queryVector.Length + " does not match store dimension " + dimension + ".",
                 nameof(queryVector));
         }
 
-        IReadOnlyList<ChunkMetadata> metadata = _vectorStore.GetMetadata();
-        ReadOnlySpan<float> vectors = _vectorStore.GetVectorsSpan();
-        int dimension = _vectorStore.Dimension;
-        var heap = new PriorityQueue<SearchCandidate, float>();
+        // Two independent immutable snapshots (vectors, metadata) may differ by a concurrent
+        // write; the minimum count keeps slot pairing consistent.
+        ReadOnlySpan<float> vectors = _store.GetVectorsSpan();
+        IReadOnlyList<ChunkMetadata> metadata = _store.GetMetadata();
+        int count = Math.Min(metadata.Count, vectors.Length / dimension);
 
-        for (int index = 0; index < metadata.Count; index++)
+        var hits = new List<VectorSearchHit>(Math.Min(count, topK));
+        ReadOnlySpan<float> query = queryVector.Span;
+
+        for (int i = 0; i < count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            int offset = index * dimension;
-            float score = ComputeDotProduct(queryVector.Span, vectors.Slice(offset, dimension));
-            var candidate = new SearchCandidate(index, score);
-            if (heap.Count < topK)
+
+            ReadOnlySpan<float> candidate = vectors.Slice(i * dimension, dimension);
+            float dot = 0f;
+            for (int d = 0; d < dimension; d++)
             {
-                heap.Enqueue(candidate, candidate.Score);
-                continue;
+                dot += query[d] * candidate[d];
             }
 
-            if (candidate.Score <= heap.Peek().Score)
-            {
-                continue;
-            }
-
-            heap.Dequeue();
-            heap.Enqueue(candidate, candidate.Score);
+            hits.Add(new VectorSearchHit(
+                VectorId: metadata[i].ChunkId,
+                VectorScore: dot,
+                FinalScore: dot,
+                Payload: metadata[i].Payload,
+                Diagnostics: null));
         }
 
-        List<SearchCandidate> ordered = heap.UnorderedItems
-            .OrderByDescending(item => item.Element.Score)
-            .Select(item => item.Element)
+        IReadOnlyList<VectorSearchHit> result = hits
+            .OrderByDescending(hit => hit.VectorScore)
+            .ThenBy(hit => hit.VectorId)
+            .Take(topK)
             .ToList();
 
-        var results = new List<SearchResult>(ordered.Count);
-        foreach (SearchCandidate candidate in ordered)
-        {
-            ChunkMetadata meta = metadata[candidate.Index];
-            int offset = candidate.Index * dimension;
-            results.Add(new SearchResult(
-                meta.ChunkId,
-                meta.FileId,
-                meta.PageNumber,
-                candidate.Score,
-                meta.Snippet,
-                vectors.Slice(offset, dimension).ToArray()));
-        }
-
-        return Task.FromResult<IReadOnlyList<SearchResult>>(results);
+        return Task.FromResult(result);
     }
-
-    private static float ComputeDotProduct(ReadOnlySpan<float> left, ReadOnlySpan<float> right)
-    {
-        float sum = 0f;
-        if (Vector.IsHardwareAccelerated && left.Length >= Vector<float>.Count)
-        {
-            int vectorLength = left.Length - (left.Length % Vector<float>.Count);
-            var accumulator = Vector<float>.Zero;
-            for (int index = 0; index < vectorLength; index += Vector<float>.Count)
-            {
-                accumulator += new Vector<float>(left.Slice(index, Vector<float>.Count))
-                               * new Vector<float>(right.Slice(index, Vector<float>.Count));
-            }
-
-            sum += Vector.Sum(accumulator);
-        }
-
-        for (int index = left.Length - (left.Length % Vector<float>.Count); index < left.Length; index++)
-        {
-            sum += left[index] * right[index];
-        }
-
-        return sum;
-    }
-
-    private sealed record SearchCandidate(int Index, float Score);
 }
