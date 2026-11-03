@@ -11,8 +11,13 @@ using Instancium.Vectra.Core.Models;
 /// atomically under a writer lock. <see cref="GetVectorsSpan"/> therefore returns a span
 /// over an immutable array that no writer can tear, and readers need no locks at all.
 ///
+/// P4: <see cref="CreateSnapshot"/> wraps the immutable COW array with ZERO copy for
+/// DotProduct/Euclidean and materializes a single normalized copy for Cosine, cached per
+/// store version. Repeated searches therefore cost a pure scan, keeping the p95 ≤ 30 ms
+/// bench budget at 5 000 × 1024.
+///
 /// Trade-off (recorded): Upsert is an O(n) copy. Acceptable for index-time batch writes;
-/// segmentized mutable storage with lock-free readers arrives in P6.
+/// segmentized mutable storage with lock-free readers arrives in P6/P7.
 /// </summary>
 public sealed class InMemoryVectorStore : IVectorStore
 {
@@ -20,6 +25,11 @@ public sealed class InMemoryVectorStore : IVectorStore
     private float[] _vectors = Array.Empty<float>();
     private ChunkMetadata[] _metadata = Array.Empty<ChunkMetadata>();
     private int _dimension;
+    private long _version;
+
+    private InMemoryVectraSnapshot? _cachedSnapshot;
+    private SimilarityMetric _cachedMetric;
+    private long _cachedVersion = -1;
 
     public int Count
     {
@@ -71,6 +81,7 @@ public sealed class InMemoryVectorStore : IVectorStore
 
                 Volatile.Write(ref _vectors, replaced);
                 Volatile.Write(ref _metadata, replacedMetadata);
+                _version++;
                 return;
             }
 
@@ -84,12 +95,39 @@ public sealed class InMemoryVectorStore : IVectorStore
 
             Volatile.Write(ref _vectors, appended);
             Volatile.Write(ref _metadata, appendedMetadata);
+            _version++;
         }
     }
 
     public ReadOnlySpan<float> GetVectorsSpan() => Volatile.Read(ref _vectors);
 
     public IReadOnlyList<ChunkMetadata> GetMetadata() => Volatile.Read(ref _metadata);
+
+    public IVectraSnapshot CreateSnapshot(SimilarityMetric metric)
+    {
+        lock (_sync)
+        {
+            if (_cachedSnapshot is not null && _cachedVersion == _version && _cachedMetric == metric)
+            {
+                return _cachedSnapshot;
+            }
+
+            long[] vectorIds = new long[_metadata.Length];
+            for (int i = 0; i < _metadata.Length; i++)
+            {
+                vectorIds[i] = _metadata[i].ChunkId;
+            }
+
+            // Zero-copy for non-Cosine metrics: the COW array is immutable by construction,
+            // so the snapshot may reference it directly without owning it.
+            var snapshot = new InMemoryVectraSnapshot(_vectors, vectorIds, _dimension, metric);
+
+            _cachedSnapshot = snapshot;
+            _cachedMetric = metric;
+            _cachedVersion = _version;
+            return snapshot;
+        }
+    }
 
     public void Clear()
     {
@@ -98,6 +136,9 @@ public sealed class InMemoryVectorStore : IVectorStore
             Volatile.Write(ref _vectors, Array.Empty<float>());
             Volatile.Write(ref _metadata, Array.Empty<ChunkMetadata>());
             Volatile.Write(ref _dimension, 0);
+            _version++;
+            _cachedSnapshot = null;
+            _cachedVersion = -1;
         }
     }
 }
