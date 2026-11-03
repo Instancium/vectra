@@ -1,0 +1,6 @@
+#nullable enable
+Instancium.Vectra.Search.InMemoryVectorSearchEngine
+Instancium.Vectra.Search.InMemoryVectorSearchEngine.InMemoryVectorSearchEngine(Instancium.Vectra.Core.Contracts.IVectorStore! vectorStore) -> void
+Instancium.Vectra.Search.InMemoryVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.SearchResult!>!>!
+Instancium.Vectra.Search.ServiceCollectionExtensions
+static Instancium.Vectra.Search.ServiceCollectionExtensions.AddVectraInMemorySearch(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

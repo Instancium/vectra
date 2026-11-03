@@ -1,0 +1,10 @@
+#nullable enable
+const Instancium.Vectra.Rag.Prompting.RagPromptBuilder.MaxSnippetChars = 1500 -> int
+Instancium.Vectra.Rag.DependencyInjection.ServiceCollectionExtensions
+Instancium.Vectra.Rag.Prompting.RagPromptBuilder
+Instancium.Vectra.Rag.RagService
+Instancium.Vectra.Rag.RagService.RagService(InstantAIGate.Core.Interfaces.Inference.IInferenceEngine! embeddingEngine, Instancium.Vectra.Core.Contracts.IVectorSearchEngine! searchEngine, Instancium.Vectra.Core.Contracts.IChatCompletionClient! chatClient, Microsoft.Extensions.Logging.ILogger<Instancium.Vectra.Rag.RagService!>? logger = null, Instancium.Vectra.Core.Contracts.IChunkMap? chunkMap = null, Instancium.Vectra.Core.Contracts.IChunkTextReader? chunkTextReader = null, Instancium.Vectra.Core.Contracts.IVectraIndexSession? indexSession = null) -> void
+Instancium.Vectra.Rag.RagService.RetrieveAsync(Instancium.Vectra.Core.Models.RagRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.RagRetrievalResult!>!
+Instancium.Vectra.Rag.RagService.StreamAnswerAsync(Instancium.Vectra.Core.Models.RagRetrievalResult! retrieval, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+static Instancium.Vectra.Rag.DependencyInjection.ServiceCollectionExtensions.AddVectraRag(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Instancium.Vectra.Rag.Prompting.RagPromptBuilder.Build(string! question, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.RagContextChunk!>! context) -> string!

@@ -1,0 +1,16 @@
+<Project>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<!-- Condition: отсутствующий файл больше не роняет билд (CS2001/AD0001) -->
+	<ItemGroup>
+		<AdditionalFiles Include="$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt"
+						 Condition="Exists('$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt')" />
+		<AdditionalFiles Include="$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt"
+						 Condition="Exists('$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt')" />
+	</ItemGroup>
+</Project>
