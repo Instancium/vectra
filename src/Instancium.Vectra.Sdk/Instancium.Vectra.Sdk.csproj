@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <PackageId>Instancium.Vectra.Sdk</PackageId>
-    <Version>1.1.0-rc.9</Version>
+    <Version>1.1.0-rc.10</Version>
     <Authors>Instancium</Authors>
     <Company>Instancium</Company>
     <Product>Instancium Vectra</Product>
