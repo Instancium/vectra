@@ -1,8 +1,7 @@
 namespace Instancium.Vectra.Storage.Disk;
 
 /// <summary>
-/// Stable names of the six on-disk index artifacts (TZ-2 section 3.2).
-/// Writer, reader and doctor must all agree on these names.
+/// On-disk artifact names of the v1 index format (file_state.json removed in P3).
 /// </summary>
 public static class IndexArtifactNames
 {
@@ -21,3 +20,4 @@ public static class IndexArtifactNames
         Chunks
     };
 }
+

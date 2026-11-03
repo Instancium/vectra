@@ -12,6 +12,8 @@ namespace Instancium.Vectra.Tests.Arch;
 /// Architecture guard tests for the v2 engine perimeter: Core, Search, Storage.
 /// Legacy satellite projects are excluded from the solution (TZ §3.3) and are no
 /// longer part of the guarded surface.
+/// DI abstractions (Microsoft.Extensions.*) are allowed: they are composition seams,
+/// not infrastructure. Forbidden: SignalR, PdfPig, InstantAIGate, sibling layers.
 /// </summary>
 [Trait("Category", "Arch")]
 public sealed class ArchitectureTests
@@ -31,18 +33,29 @@ public sealed class ArchitectureTests
     }
 
     [Fact]
-    public void StorageAndSearch_ShouldReferenceOnlyCoreSystemAndDependencyInjection()
+    public void Storage_ShouldReferenceOnlyCoreSystemAndDependencyInjection()
     {
-        foreach (Assembly assembly in new[] { Storage, Search })
-        {
-            string[] forbidden = References(assembly)
-                .Where(name => !IsSystemAssembly(name)
-                    && name != "Instancium.Vectra.Core"
-                    && !name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal))
-                .ToArray();
+        string[] forbidden = References(Storage)
+            .Where(name => !IsSystemAssembly(name)
+                && name != "Instancium.Vectra.Core"
+                && !name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal))
+            .ToArray();
 
-            Assert.Empty(forbidden);
-        }
+        Assert.Empty(forbidden);
+    }
+
+    [Fact]
+    public void Search_ShouldReferenceOnlyCoreSystemAndDependencyInjection()
+    {
+        // Search depends only on Core contracts (IVectorStore); concrete Storage
+        // implementations are injected via DI and must not be referenced at compile time.
+        string[] forbidden = References(Search)
+            .Where(name => !IsSystemAssembly(name)
+                && name != "Instancium.Vectra.Core"
+                && !name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Empty(forbidden);
     }
 
     [Fact]

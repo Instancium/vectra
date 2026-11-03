@@ -2,43 +2,23 @@
 namespace Instancium.Vectra.Storage.Disk;
 
 using Instancium.Vectra.Core.Contracts;
-using Instancium.Vectra.Core.Exceptions;
 
 /// <summary>
-/// Resolves index directories against an explicitly configured base directory.
-///
-/// Defect #17 fix: there is no implicit Directory.GetCurrentDirectory() fallback.
-/// The base directory comes from an explicit constructor argument or from the
-/// INSTANCIUM_VECTRA_HOME environment variable; otherwise construction fails fast,
-/// because an index whose location depends on the process CWD is unreproducible.
+/// Resolves index directories against an explicitly provided content root.
+/// Defect #17 fix: there is no Directory.GetCurrentDirectory() fallback anywhere.
+/// When the root is a single file, its containing directory is used (deterministic);
+/// otherwise the root must exist as a directory.
 /// </summary>
 public sealed class InstanciumDirectoryResolver : IInstanciumDirectoryResolver
 {
-    public const string EnvironmentVariableName = "INSTANCIUM_VECTRA_HOME";
     public const string InstanciumFolderName = ".instancium";
     public const string ProductFolderName = "vectra";
     public const string IndexFolderName = "index";
-
     private const string GitIgnoreFileName = ".gitignore";
     private const string GitKeepFileName = ".gitkeep";
     private const string GitIgnoreContent =
         "# Instancium ecosystem - derived artifacts\n" +
         "vectra/index/\n";
-
-    private readonly string _baseDirectory;
-
-    public InstanciumDirectoryResolver(string? baseDirectory = null)
-    {
-        string? root = baseDirectory ?? Environment.GetEnvironmentVariable(EnvironmentVariableName);
-        if (string.IsNullOrWhiteSpace(root))
-        {
-            throw new VectraException(
-                "Vectra base directory is not configured. Pass it explicitly to AddVectraStorage(baseDirectory) " +
-                "or set the " + EnvironmentVariableName + " environment variable.");
-        }
-
-        _baseDirectory = Path.GetFullPath(root);
-    }
 
     public string ResolveIndexDirectory(string rootPath, string? explicitIndexDir = null)
     {
@@ -46,25 +26,33 @@ public sealed class InstanciumDirectoryResolver : IInstanciumDirectoryResolver
 
         if (!string.IsNullOrWhiteSpace(explicitIndexDir))
         {
-            return Path.GetFullPath(Path.Combine(_baseDirectory, explicitIndexDir));
+            return Path.Combine(Path.GetFullPath(explicitIndexDir), ProductFolderName, IndexFolderName);
         }
 
         string fullPath = Path.GetFullPath(rootPath);
-        if (Path.IsPathRooted(fullPath))
+        string baseDirectory;
+        if (File.Exists(fullPath))
         {
-            return fullPath;
+            baseDirectory = Path.GetDirectoryName(fullPath)
+                ?? throw new ArgumentException($"Root '{fullPath}' has no parent directory.", nameof(rootPath));
+        }
+        else if (Directory.Exists(fullPath))
+        {
+            baseDirectory = fullPath;
+        }
+        else
+        {
+            throw new DirectoryNotFoundException($"Content root '{fullPath}' does not exist.");
         }
 
-        return Path.Combine(_baseDirectory, fullPath);
+        return Path.Combine(baseDirectory, InstanciumFolderName, ProductFolderName, IndexFolderName);
     }
 
     public void EnsureDirectoryStructure(string indexDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(indexDirectory);
-
         string fullIndexDirectory = Path.GetFullPath(indexDirectory);
         Directory.CreateDirectory(fullIndexDirectory);
-
         DirectoryInfo? productDirectory = Directory.GetParent(fullIndexDirectory);
         DirectoryInfo? ecosystemDirectory = productDirectory?.Parent;
         if (productDirectory is null || ecosystemDirectory is null)
@@ -91,3 +79,4 @@ public sealed class InstanciumDirectoryResolver : IInstanciumDirectoryResolver
         File.WriteAllText(path, content);
     }
 }
+

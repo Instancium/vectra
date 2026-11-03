@@ -66,11 +66,11 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
             }
 
             hits.Add(new VectorSearchHit(
-                VectorId: metadata[i].ChunkId,
-                VectorScore: dot,
-                FinalScore: dot,
-                Payload: metadata[i].Payload,
-                Diagnostics: null));
+                metadata[i].ChunkId,
+                dot,
+                dot,
+                metadata[i].Payload,
+                null));
         }
 
         IReadOnlyList<VectorSearchHit> result = hits
