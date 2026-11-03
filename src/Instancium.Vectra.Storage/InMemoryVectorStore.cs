@@ -1,71 +1,42 @@
-// src/Instancium.Vectra.Storage/InMemoryVectorStore.cs
 #nullable enable
 namespace Instancium.Vectra.Storage;
 
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 
+/// <summary>
+/// Thread-safe in-memory vector store built on copy-on-write immutable snapshots.
+///
+/// Defect #4 fix: the backing float array is never mutated in place; it is replaced
+/// atomically under a writer lock. <see cref="GetVectorsSpan"/> therefore returns a span
+/// over an immutable array that no writer can tear, and readers need no locks at all.
+///
+/// Trade-off (recorded): Upsert is an O(n) copy. Acceptable for index-time batch writes;
+/// segmentized mutable storage with lock-free readers arrives in P6.
+/// </summary>
 public sealed class InMemoryVectorStore : IVectorStore
 {
     private readonly object _sync = new();
-    private readonly List<ChunkMetadata> _metadata = new();
-    private readonly Dictionary<long, int> _chunkIdToIndex = new();
     private float[] _vectors = Array.Empty<float>();
-    private int _count;
+    private ChunkMetadata[] _metadata = Array.Empty<ChunkMetadata>();
     private int _dimension;
 
     public int Count
     {
         get
         {
-            lock (_sync)
-            {
-                return _count;
-            }
+            int dimension = Volatile.Read(ref _dimension);
+            return dimension == 0 ? 0 : Volatile.Read(ref _vectors).Length / dimension;
         }
     }
 
-    public int Dimension
-    {
-        get
-        {
-            lock (_sync)
-            {
-                return _dimension;
-            }
-        }
-    }
+    public int Dimension => Volatile.Read(ref _dimension);
 
-    public ReadOnlySpan<float> GetVectorsSpan()
+    public void Upsert(long chunkId, long fileId, int pageNumber, string? snippet, ReadOnlyMemory<float> vector)
     {
-        lock (_sync)
-        {
-            return _vectors.AsSpan(0, _count * _dimension);
-        }
-    }
-
-    public IReadOnlyList<ChunkMetadata> GetMetadata()
-    {
-        lock (_sync)
-        {
-            return _metadata.ToArray();
-        }
-    }
-
-    public void Upsert(long chunkId, long fileId, int pageNumber, string snippet, ReadOnlyMemory<float> vector)
-    {
-        ArgumentNullException.ThrowIfNull(snippet);
-        ArgumentOutOfRangeException.ThrowIfLessThan(chunkId, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(fileId, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
         if (vector.Length == 0)
         {
             throw new ArgumentException("Vector cannot be empty.", nameof(vector));
-        }
-
-        if (snippet.Length == 0)
-        {
-            snippet = string.Empty;
         }
 
         lock (_sync)
@@ -77,28 +48,56 @@ public sealed class InMemoryVectorStore : IVectorStore
             else if (_dimension != vector.Length)
             {
                 throw new ArgumentException(
-                    $"Dimension mismatch: store uses {_dimension} but received {vector.Length}.",
+                    "Dimension mismatch: store=" + _dimension + ", vector=" + vector.Length + ".",
                     nameof(vector));
             }
 
-            if (_chunkIdToIndex.TryGetValue(chunkId, out int existingIndex))
+            float[] oldVectors = _vectors;
+            ChunkMetadata[] oldMetadata = _metadata;
+
+            for (int i = 0; i < oldMetadata.Length; i++)
             {
-                vector.Span.CopyTo(_vectors.AsSpan(existingIndex * _dimension, _dimension));
-                _metadata[existingIndex] = new ChunkMetadata(chunkId, fileId, pageNumber, snippet);
-            }
-            else
-            {
-                int requiredLength = (_count + 1) * _dimension;
-                if (_vectors.Length < requiredLength)
+                if (oldMetadata[i].ChunkId != chunkId)
                 {
-                    Array.Resize(ref _vectors, Math.Max(requiredLength, _vectors.Length * 2));
+                    continue;
                 }
 
-                vector.Span.CopyTo(_vectors.AsSpan(_count * _dimension, _dimension));
-                _metadata.Add(new ChunkMetadata(chunkId, fileId, pageNumber, snippet));
-                _chunkIdToIndex[chunkId] = _count;
-                _count++;
+                float[] replaced = new float[oldVectors.Length];
+                Array.Copy(oldVectors, replaced, oldVectors.Length);
+                vector.Span.CopyTo(replaced.AsSpan(i * _dimension, _dimension));
+
+                ChunkMetadata[] replacedMetadata = (ChunkMetadata[])oldMetadata.Clone();
+                replacedMetadata[i] = new ChunkMetadata(chunkId, fileId, pageNumber, snippet ?? string.Empty);
+
+                Volatile.Write(ref _vectors, replaced);
+                Volatile.Write(ref _metadata, replacedMetadata);
+                return;
             }
+
+            float[] appended = new float[oldVectors.Length + _dimension];
+            Array.Copy(oldVectors, appended, oldVectors.Length);
+            vector.Span.CopyTo(appended.AsSpan(oldVectors.Length, _dimension));
+
+            ChunkMetadata[] appendedMetadata = new ChunkMetadata[oldMetadata.Length + 1];
+            Array.Copy(oldMetadata, appendedMetadata, oldMetadata.Length);
+            appendedMetadata[^1] = new ChunkMetadata(chunkId, fileId, pageNumber, snippet ?? string.Empty);
+
+            Volatile.Write(ref _vectors, appended);
+            Volatile.Write(ref _metadata, appendedMetadata);
+        }
+    }
+
+    public ReadOnlySpan<float> GetVectorsSpan() => Volatile.Read(ref _vectors);
+
+    public IReadOnlyList<ChunkMetadata> GetMetadata() => Volatile.Read(ref _metadata);
+
+    public void Clear()
+    {
+        lock (_sync)
+        {
+            Volatile.Write(ref _vectors, Array.Empty<float>());
+            Volatile.Write(ref _metadata, Array.Empty<ChunkMetadata>());
+            Volatile.Write(ref _dimension, 0);
         }
     }
 }

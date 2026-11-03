@@ -4,11 +4,12 @@ using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 using System.Text;
 using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
 /// Default <see cref="IIndexWriter"/> implementation. Serializes an <see cref="IndexWriteRequest"/>
-/// into the six index artifacts defined by TZ-2 section 3.2.
+/// into the on-disk index artifacts defined by TZ-2 section 3.2.
 /// </summary>
 public sealed class DiskIndexWriter : IIndexWriter
 {
@@ -31,8 +32,6 @@ public sealed class DiskIndexWriter : IIndexWriter
         }
 
         ChunkRecord[] chunks = request.Chunks.OrderBy(chunk => chunk.ChunkId).ToArray();
-        FileState[] files = request.Files.OrderBy(file => file.FileId).ToArray();
-
         ChunkPayload payload = BuildChunkPayload(chunks);
 
         await AtomicFileWriter.WriteAllBytesAtomicAsync(
@@ -50,10 +49,6 @@ public sealed class DiskIndexWriter : IIndexWriter
         await WriteJsonAtomicAsync(
             Path.Combine(fullDirectory, IndexArtifactNames.ChunkMap),
             payload.ChunkMap,
-            cancellationToken).ConfigureAwait(false);
-        await WriteJsonAtomicAsync(
-            Path.Combine(fullDirectory, IndexArtifactNames.FileState),
-            BuildFileState(files),
             cancellationToken).ConfigureAwait(false);
 
         var manifest = new ManifestDto(
@@ -81,7 +76,14 @@ public sealed class DiskIndexWriter : IIndexWriter
             totalLength += encoded[i].Length;
         }
 
-        var texts = new byte[checked((int)totalLength)];
+        if (totalLength > int.MaxValue)
+        {
+            throw new VectraException(
+                "vectors.bin would exceed the 2 GiB single-file limit (" + totalLength + " bytes). " +
+                "Segmentized storage is scheduled for P6; split the corpus or reduce dimensionality.");
+        }
+
+        var texts = new byte[(int)totalLength];
         var offsets = new byte[chunks.Count * OffsetRecordSize];
         var map = new ChunkMapEntryDto[chunks.Count];
 
@@ -135,23 +137,6 @@ public sealed class DiskIndexWriter : IIndexWriter
                 destination.Slice(i * sizeof(float), sizeof(float)),
                 source[i]);
         }
-    }
-
-    private static SortedDictionary<long, FileStateDto> BuildFileState(IReadOnlyList<FileState> files)
-    {
-        var state = new SortedDictionary<long, FileStateDto>();
-        foreach (FileState file in files)
-        {
-            state.Add(file.FileId, new FileStateDto(
-                file.Path,
-                file.Sha256,
-                file.SizeBytes,
-                file.Format,
-                file.ChunkIds,
-                file.IndexedAt,
-                file.Status));
-        }
-        return state;
     }
 
     private static Task WriteJsonAtomicAsync<T>(string targetPath, T value, CancellationToken cancellationToken) =>

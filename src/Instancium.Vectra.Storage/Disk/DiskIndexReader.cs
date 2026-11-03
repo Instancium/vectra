@@ -35,26 +35,6 @@ public sealed class DiskIndexReader : IIndexReader
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<FileState>> ReadFileStatesAsync(string indexDirectory, CancellationToken cancellationToken = default)
-    {
-        byte[] utf8 = await ReadArtifactAsync(indexDirectory, IndexArtifactNames.FileState, cancellationToken)
-            .ConfigureAwait(false);
-        SortedDictionary<long, FileStateDto> dtos =
-            DiskIndexJson.DeserializeFromUtf8Bytes<SortedDictionary<long, FileStateDto>>(utf8);
-        return dtos
-            .Select(pair => new FileState(
-                pair.Key,
-                pair.Value.Path,
-                pair.Value.Sha256,
-                pair.Value.SizeBytes,
-                pair.Value.Format,
-                pair.Value.ChunkIds,
-                pair.Value.IndexedAt,
-                pair.Value.Status))
-            .ToArray();
-    }
-
-    /// <inheritdoc />
     public async Task<IReadOnlyList<ChunkMapEntry>> ReadChunkMapAsync(string indexDirectory, CancellationToken cancellationToken = default)
     {
         byte[] utf8 = await ReadArtifactAsync(indexDirectory, IndexArtifactNames.ChunkMap, cancellationToken)
