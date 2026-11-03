@@ -1,1 +1,506 @@
 #nullable enable
+Instancium.Vectra.Core.Contracts.IEmbeddingProvider
+Instancium.Vectra.Core.Contracts.IEmbeddingProvider.Dimension.get -> int
+Instancium.Vectra.Core.Contracts.IEmbeddingProvider.EmbedAsync(string! text, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<float>>
+Instancium.Vectra.Core.Contracts.IEmbeddingProvider.ModelId.get -> string!
+Instancium.Vectra.Core.Contracts.IExpression
+Instancium.Vectra.Core.Contracts.IReranker
+Instancium.Vectra.Core.Contracts.IReranker.RerankAsync(Instancium.Vectra.Core.Models.SearchQuery! query, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>! candidates, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Core.Contracts.ISearchKernel
+Instancium.Vectra.Core.Contracts.ISearchKernel.SearchAsync(Instancium.Vectra.Core.Contracts.IVectraSnapshot! snapshot, Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Core.Contracts.ISimilarityKernel
+Instancium.Vectra.Core.Contracts.ISimilarityKernel.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Contracts.ISimilarityKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
+Instancium.Vectra.Core.Contracts.IVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Core.Contracts.IVectorStore.CreateSnapshot(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.IVectraSnapshot!
+Instancium.Vectra.Core.Contracts.IVectraCollection
+Instancium.Vectra.Core.Contracts.IVectraCollection.AddAsync(Instancium.Vectra.Core.Models.VectorEntry! entry, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<long>
+Instancium.Vectra.Core.Contracts.IVectraCollection.AddRangeAsync(System.ReadOnlyMemory<Instancium.Vectra.Core.Models.VectorEntry!> entries, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Instancium.Vectra.Core.Contracts.IVectraCollection.GetPayloadTextAsync(long vectorId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string?>
+Instancium.Vectra.Core.Contracts.IVectraCollection.Info.get -> Instancium.Vectra.Core.Models.CollectionInfo!
+Instancium.Vectra.Core.Contracts.IVectraCollection.Name.get -> string!
+Instancium.Vectra.Core.Contracts.IVectraCollection.RemoveAsync(long vectorId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+Instancium.Vectra.Core.Contracts.IVectraCollection.SearchAsync(Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Core.Contracts.IVectraEngine
+Instancium.Vectra.Core.Contracts.IVectraEngine.DeleteCollectionAsync(string! name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Instancium.Vectra.Core.Contracts.IVectraEngine.GetOrOpenCollection(string! name, Instancium.Vectra.Core.Models.CollectionOptions! options) -> Instancium.Vectra.Core.Contracts.IVectraCollection!
+Instancium.Vectra.Core.Contracts.IVectraEngine.ListCollectionsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.CollectionInfo!>!>!
+Instancium.Vectra.Core.Contracts.IVectraSnapshot
+Instancium.Vectra.Core.Contracts.IVectraSnapshot.Dimension.get -> int
+Instancium.Vectra.Core.Contracts.IVectraSnapshot.GetVector(long slot) -> System.ReadOnlySpan<float>
+Instancium.Vectra.Core.Contracts.IVectraSnapshot.GetVectorId(long slot) -> long
+Instancium.Vectra.Core.Contracts.IVectraSnapshot.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Contracts.IVectraSnapshot.VectorCount.get -> long
+Instancium.Vectra.Core.Models.ChunkMetadata.ChunkMetadata(long chunkId, long fileId, int pageNumber, string? payload) -> void
+Instancium.Vectra.Core.Models.ChunkMetadata.Payload.get -> string?
+Instancium.Vectra.Core.Models.CollectionInfo
+Instancium.Vectra.Core.Models.CollectionInfo.<Clone>$() -> Instancium.Vectra.Core.Models.CollectionInfo!
+Instancium.Vectra.Core.Models.CollectionInfo.CollectionInfo(string! name, int dimension, Instancium.Vectra.Core.Models.SimilarityMetric metric, string! modelId, string? modelFingerprint, long vectorCount, int formatVersion) -> void
+Instancium.Vectra.Core.Models.CollectionInfo.Dimension.get -> int
+Instancium.Vectra.Core.Models.CollectionInfo.Equals(Instancium.Vectra.Core.Models.CollectionInfo? other) -> bool
+Instancium.Vectra.Core.Models.CollectionInfo.FormatVersion.get -> int
+Instancium.Vectra.Core.Models.CollectionInfo.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.CollectionInfo.ModelFingerprint.get -> string?
+Instancium.Vectra.Core.Models.CollectionInfo.ModelId.get -> string!
+Instancium.Vectra.Core.Models.CollectionInfo.Name.get -> string!
+Instancium.Vectra.Core.Models.CollectionInfo.VectorCount.get -> long
+Instancium.Vectra.Core.Models.CollectionOptions
+Instancium.Vectra.Core.Models.CollectionOptions.<Clone>$() -> Instancium.Vectra.Core.Models.CollectionOptions!
+Instancium.Vectra.Core.Models.CollectionOptions.CollectionOptions(int dimension, Instancium.Vectra.Core.Models.SimilarityMetric metric, string! modelId, string? modelFingerprint = null, Instancium.Vectra.Core.Models.QuantizationMode quantization = Instancium.Vectra.Core.Models.QuantizationMode.None) -> void
+Instancium.Vectra.Core.Models.CollectionOptions.Dimension.get -> int
+Instancium.Vectra.Core.Models.CollectionOptions.Equals(Instancium.Vectra.Core.Models.CollectionOptions? other) -> bool
+Instancium.Vectra.Core.Models.CollectionOptions.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.CollectionOptions.ModelFingerprint.get -> string?
+Instancium.Vectra.Core.Models.CollectionOptions.ModelId.get -> string!
+Instancium.Vectra.Core.Models.CollectionOptions.Quantization.get -> Instancium.Vectra.Core.Models.QuantizationMode
+Instancium.Vectra.Core.Models.IndexWriteRequest.IndexWriteRequest(Instancium.Vectra.Core.Models.DiskIndexManifest! manifest, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkRecord!>! chunks) -> void
+Instancium.Vectra.Core.Models.QuantizationMode
+Instancium.Vectra.Core.Models.QuantizationMode.Binary = 2 -> Instancium.Vectra.Core.Models.QuantizationMode
+Instancium.Vectra.Core.Models.QuantizationMode.None = 0 -> Instancium.Vectra.Core.Models.QuantizationMode
+Instancium.Vectra.Core.Models.QuantizationMode.Scalar8 = 1 -> Instancium.Vectra.Core.Models.QuantizationMode
+Instancium.Vectra.Core.Models.ReferenceSimilarityKernel
+Instancium.Vectra.Core.Models.ReferenceSimilarityKernel.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.ReferenceSimilarityKernel.ReferenceSimilarityKernel(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> void
+Instancium.Vectra.Core.Models.ReferenceSimilarityKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
+Instancium.Vectra.Core.Models.SearchDiagnostics
+Instancium.Vectra.Core.Models.SearchDiagnostics.<Clone>$() -> Instancium.Vectra.Core.Models.SearchDiagnostics!
+Instancium.Vectra.Core.Models.SearchDiagnostics.Equals(Instancium.Vectra.Core.Models.SearchDiagnostics? other) -> bool
+Instancium.Vectra.Core.Models.SearchDiagnostics.KernelUsed.get -> string?
+Instancium.Vectra.Core.Models.SearchDiagnostics.RecallTimeMs.get -> double
+Instancium.Vectra.Core.Models.SearchDiagnostics.RerankTimeMs.get -> double
+Instancium.Vectra.Core.Models.SearchDiagnostics.ScannedVectors.get -> int
+Instancium.Vectra.Core.Models.SearchDiagnostics.SearchDiagnostics(int scannedVectors, double recallTimeMs, double rerankTimeMs, string? kernelUsed) -> void
+Instancium.Vectra.Core.Models.SearchOptions
+Instancium.Vectra.Core.Models.SearchOptions.<Clone>$() -> Instancium.Vectra.Core.Models.SearchOptions!
+Instancium.Vectra.Core.Models.SearchOptions.Equals(Instancium.Vectra.Core.Models.SearchOptions? other) -> bool
+Instancium.Vectra.Core.Models.SearchOptions.IncludeDiagnostics.get -> bool
+Instancium.Vectra.Core.Models.SearchOptions.Overfetch.get -> int?
+Instancium.Vectra.Core.Models.SearchOptions.Reranker.get -> Instancium.Vectra.Core.Contracts.IReranker?
+Instancium.Vectra.Core.Models.SearchOptions.SearchOptions(int topK = 10, int? overfetch = null, Instancium.Vectra.Core.Contracts.IReranker? reranker = null, bool includeDiagnostics = false) -> void
+Instancium.Vectra.Core.Models.SearchOptions.TopK.get -> int
+Instancium.Vectra.Core.Models.SearchQuery
+Instancium.Vectra.Core.Models.SearchQuery.<Clone>$() -> Instancium.Vectra.Core.Models.SearchQuery!
+Instancium.Vectra.Core.Models.SearchQuery.Equals(Instancium.Vectra.Core.Models.SearchQuery? other) -> bool
+Instancium.Vectra.Core.Models.SearchQuery.Filter.get -> Instancium.Vectra.Core.Contracts.IExpression?
+Instancium.Vectra.Core.Models.SearchQuery.QueryText.get -> string?
+Instancium.Vectra.Core.Models.SearchQuery.SearchQuery(System.ReadOnlyMemory<float> vector, string? queryText = null, Instancium.Vectra.Core.Contracts.IExpression? filter = null) -> void
+Instancium.Vectra.Core.Models.SearchQuery.Vector.get -> System.ReadOnlyMemory<float>
+Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.SimilarityMetric.Cosine = 0 -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.SimilarityMetric.DotProduct = 1 -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.SimilarityMetric.Euclidean = 2 -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.VectorEntry
+Instancium.Vectra.Core.Models.VectorEntry.<Clone>$() -> Instancium.Vectra.Core.Models.VectorEntry!
+Instancium.Vectra.Core.Models.VectorEntry.Equals(Instancium.Vectra.Core.Models.VectorEntry? other) -> bool
+Instancium.Vectra.Core.Models.VectorEntry.Payload.get -> string?
+Instancium.Vectra.Core.Models.VectorEntry.Vector.get -> System.ReadOnlyMemory<float>
+Instancium.Vectra.Core.Models.VectorEntry.VectorEntry(long? vectorId, System.ReadOnlyMemory<float> vector, string? payload = null) -> void
+Instancium.Vectra.Core.Models.VectorEntry.VectorId.get -> long?
+Instancium.Vectra.Core.Models.VectorSearchHit
+Instancium.Vectra.Core.Models.VectorSearchHit.<Clone>$() -> Instancium.Vectra.Core.Models.VectorSearchHit!
+Instancium.Vectra.Core.Models.VectorSearchHit.Diagnostics.get -> Instancium.Vectra.Core.Models.SearchDiagnostics?
+Instancium.Vectra.Core.Models.VectorSearchHit.Equals(Instancium.Vectra.Core.Models.VectorSearchHit? other) -> bool
+Instancium.Vectra.Core.Models.VectorSearchHit.FinalScore.get -> float
+Instancium.Vectra.Core.Models.VectorSearchHit.Payload.get -> string?
+Instancium.Vectra.Core.Models.VectorSearchHit.VectorId.get -> long
+Instancium.Vectra.Core.Models.VectorSearchHit.VectorScore.get -> float
+Instancium.Vectra.Core.Models.VectorSearchHit.VectorSearchHit(long vectorId, float vectorScore, float finalScore, string? payload, Instancium.Vectra.Core.Models.SearchDiagnostics? diagnostics = null) -> void
+override Instancium.Vectra.Core.Models.CollectionInfo.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.CollectionInfo.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.CollectionInfo.ToString() -> string!
+override Instancium.Vectra.Core.Models.CollectionOptions.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.CollectionOptions.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.CollectionOptions.ToString() -> string!
+override Instancium.Vectra.Core.Models.SearchDiagnostics.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.SearchDiagnostics.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.SearchDiagnostics.ToString() -> string!
+override Instancium.Vectra.Core.Models.SearchOptions.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.SearchOptions.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.SearchOptions.ToString() -> string!
+override Instancium.Vectra.Core.Models.SearchQuery.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.SearchQuery.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.SearchQuery.ToString() -> string!
+override Instancium.Vectra.Core.Models.VectorEntry.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.VectorEntry.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.VectorEntry.ToString() -> string!
+override Instancium.Vectra.Core.Models.VectorSearchHit.Equals(object? obj) -> bool
+override Instancium.Vectra.Core.Models.VectorSearchHit.GetHashCode() -> int
+override Instancium.Vectra.Core.Models.VectorSearchHit.ToString() -> string!
+static Instancium.Vectra.Core.Models.CollectionInfo.operator !=(Instancium.Vectra.Core.Models.CollectionInfo? left, Instancium.Vectra.Core.Models.CollectionInfo? right) -> bool
+static Instancium.Vectra.Core.Models.CollectionInfo.operator ==(Instancium.Vectra.Core.Models.CollectionInfo? left, Instancium.Vectra.Core.Models.CollectionInfo? right) -> bool
+static Instancium.Vectra.Core.Models.CollectionOptions.operator !=(Instancium.Vectra.Core.Models.CollectionOptions? left, Instancium.Vectra.Core.Models.CollectionOptions? right) -> bool
+static Instancium.Vectra.Core.Models.CollectionOptions.operator ==(Instancium.Vectra.Core.Models.CollectionOptions? left, Instancium.Vectra.Core.Models.CollectionOptions? right) -> bool
+static Instancium.Vectra.Core.Models.SearchDiagnostics.operator !=(Instancium.Vectra.Core.Models.SearchDiagnostics? left, Instancium.Vectra.Core.Models.SearchDiagnostics? right) -> bool
+static Instancium.Vectra.Core.Models.SearchDiagnostics.operator ==(Instancium.Vectra.Core.Models.SearchDiagnostics? left, Instancium.Vectra.Core.Models.SearchDiagnostics? right) -> bool
+static Instancium.Vectra.Core.Models.SearchOptions.operator !=(Instancium.Vectra.Core.Models.SearchOptions? left, Instancium.Vectra.Core.Models.SearchOptions? right) -> bool
+static Instancium.Vectra.Core.Models.SearchOptions.operator ==(Instancium.Vectra.Core.Models.SearchOptions? left, Instancium.Vectra.Core.Models.SearchOptions? right) -> bool
+static Instancium.Vectra.Core.Models.SearchQuery.operator !=(Instancium.Vectra.Core.Models.SearchQuery? left, Instancium.Vectra.Core.Models.SearchQuery? right) -> bool
+static Instancium.Vectra.Core.Models.SearchQuery.operator ==(Instancium.Vectra.Core.Models.SearchQuery? left, Instancium.Vectra.Core.Models.SearchQuery? right) -> bool
+static Instancium.Vectra.Core.Models.VectorEntry.operator !=(Instancium.Vectra.Core.Models.VectorEntry? left, Instancium.Vectra.Core.Models.VectorEntry? right) -> bool
+static Instancium.Vectra.Core.Models.VectorEntry.operator ==(Instancium.Vectra.Core.Models.VectorEntry? left, Instancium.Vectra.Core.Models.VectorEntry? right) -> bool
+static Instancium.Vectra.Core.Models.VectorSearchHit.operator !=(Instancium.Vectra.Core.Models.VectorSearchHit? left, Instancium.Vectra.Core.Models.VectorSearchHit? right) -> bool
+static Instancium.Vectra.Core.Models.VectorSearchHit.operator ==(Instancium.Vectra.Core.Models.VectorSearchHit? left, Instancium.Vectra.Core.Models.VectorSearchHit? right) -> bool
+*REMOVED*const Instancium.Vectra.Core.Models.TextChunkingOptions.DefaultChunkOverlapChars = 200 -> int
+*REMOVED*const Instancium.Vectra.Core.Models.TextChunkingOptions.DefaultChunkSizeChars = 1200 -> int
+*REMOVED*Instancium.Vectra.Core.Contracts.IChangeClassifier
+*REMOVED*Instancium.Vectra.Core.Contracts.IChangeClassifier.Classify(System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ScannedFile!>! scannedFiles, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>! previousStates) -> Instancium.Vectra.Core.Models.ChangeSet!
+*REMOVED*Instancium.Vectra.Core.Contracts.IChatCompletionClient
+*REMOVED*Instancium.Vectra.Core.Contracts.IChatCompletionClient.StreamAnswerAsync(string! prompt, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractor
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractor.ExtractAsync(string! filePath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.ExtractedDocument!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractor.SourceKind.get -> string!
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractor.SupportedExtensions.get -> System.Collections.Generic.IReadOnlyList<string!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractorRegistry
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractorRegistry.Resolve(string! fileExtension) -> Instancium.Vectra.Core.Contracts.IContentExtractor!
+*REMOVED*Instancium.Vectra.Core.Contracts.IContentExtractorRegistry.SupportedExtensions.get -> System.Collections.Generic.IReadOnlyList<string!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IFileScanner
+*REMOVED*Instancium.Vectra.Core.Contracts.IFileScanner.ScanAsync(string! rootPath, System.Collections.Generic.IReadOnlyList<string!>! supportedExtensions, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ScannedFile!>!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IFileStateStore
+*REMOVED*Instancium.Vectra.Core.Contracts.IFileStateStore.LoadAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IFileStateStore.SaveAsync(string! indexDirectory, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>! states, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+*REMOVED*Instancium.Vectra.Core.Contracts.IIncrementalIndexer
+*REMOVED*Instancium.Vectra.Core.Contracts.IIncrementalIndexer.RunAsync(string! contentRoot, string! indexDirectory, string! repoId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.IncrementalIndexingResult!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IIndexingPipeline
+*REMOVED*Instancium.Vectra.Core.Contracts.IIndexingPipeline.RunAsync(Instancium.Vectra.Core.Models.IndexingPipelineRequest! request, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.IndexingPipelineResult!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IIndexReader.ReadFileStatesAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IRagService
+*REMOVED*Instancium.Vectra.Core.Contracts.IRagService.RetrieveAsync(Instancium.Vectra.Core.Models.RagRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.RagRetrievalResult!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IRagService.StreamAnswerAsync(Instancium.Vectra.Core.Models.RagRetrievalResult! retrieval, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.ITextChunker
+*REMOVED*Instancium.Vectra.Core.Contracts.ITextChunker.Chunk(System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.PageText!>! pages, string! sourceFile) -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.TextChunk!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.ITextExtractor
+*REMOVED*Instancium.Vectra.Core.Contracts.ITextExtractor.ExtractAsync(Instancium.Vectra.Core.Models.TextExtractionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.PageText!>!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.SearchResult!>!>!
+*REMOVED*Instancium.Vectra.Core.Contracts.IVectraIndexSession.FileStates.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!
+*REMOVED*Instancium.Vectra.Core.Exceptions.IndexingFailedException
+*REMOVED*Instancium.Vectra.Core.Exceptions.IndexingFailedException.IndexingFailedException() -> void
+*REMOVED*Instancium.Vectra.Core.Exceptions.IndexingFailedException.IndexingFailedException(string! message) -> void
+*REMOVED*Instancium.Vectra.Core.Exceptions.IndexingFailedException.IndexingFailedException(string! message, System.Exception! innerException) -> void
+*REMOVED*Instancium.Vectra.Core.Exceptions.UnsupportedFormatException
+*REMOVED*Instancium.Vectra.Core.Exceptions.UnsupportedFormatException.UnsupportedFormatException() -> void
+*REMOVED*Instancium.Vectra.Core.Exceptions.UnsupportedFormatException.UnsupportedFormatException(string! message) -> void
+*REMOVED*Instancium.Vectra.Core.Exceptions.UnsupportedFormatException.UnsupportedFormatException(string! message, System.Exception! innerException) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.<Clone>$() -> Instancium.Vectra.Core.Models.ChangeSet!
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.Added.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ScannedFile!>!
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.ChangeSet(System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ScannedFile!>! added, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ModifiedFile!>! modified, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>! removed, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>! unchanged) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.Equals(Instancium.Vectra.Core.Models.ChangeSet? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.HasChanges.get -> bool
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.Modified.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ModifiedFile!>!
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.Removed.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!
+*REMOVED*Instancium.Vectra.Core.Models.ChangeSet.Unchanged.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!
+*REMOVED*Instancium.Vectra.Core.Models.ChunkMetadata.ChunkMetadata(long chunkId, long fileId, int pageNumber, string! text) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ChunkMetadata.Snippet.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ChunkMetadata.Text.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.<Clone>$() -> Instancium.Vectra.Core.Models.ExtractedDocument!
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.Equals(Instancium.Vectra.Core.Models.ExtractedDocument? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.ExtractedDocument(string! sourcePath, string! sourceKind, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.PageText!>! pages) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.Pages.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.PageText!>!
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.SourceKind.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ExtractedDocument.SourcePath.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.FileState
+*REMOVED*Instancium.Vectra.Core.Models.FileState.<Clone>$() -> Instancium.Vectra.Core.Models.FileState!
+*REMOVED*Instancium.Vectra.Core.Models.FileState.ChunkIds.get -> System.Collections.Generic.IReadOnlyList<long>!
+*REMOVED*Instancium.Vectra.Core.Models.FileState.Equals(Instancium.Vectra.Core.Models.FileState? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.FileState.FileId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.FileState.FileState(long fileId, string! path, string! sha256, long sizeBytes, string! format, System.Collections.Generic.IReadOnlyList<long>! chunkIds, System.DateTimeOffset indexedAt, Instancium.Vectra.Core.Models.IndexFileStatus status) -> void
+*REMOVED*Instancium.Vectra.Core.Models.FileState.Format.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.FileState.IndexedAt.get -> System.DateTimeOffset
+*REMOVED*Instancium.Vectra.Core.Models.FileState.Path.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.FileState.Sha256.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.FileState.SizeBytes.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.FileState.Status.get -> Instancium.Vectra.Core.Models.IndexFileStatus
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.<Clone>$() -> Instancium.Vectra.Core.Models.GoldQuery!
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.Equals(Instancium.Vectra.Core.Models.GoldQuery? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.ExpectedPageFrom.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.ExpectedPageFrom.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.ExpectedPageTo.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.ExpectedPageTo.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.GoldQuery() -> void
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.Query.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.GoldQuery.Query.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.<Clone>$() -> Instancium.Vectra.Core.Models.IncrementalIndexingResult!
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Changes.get -> Instancium.Vectra.Core.Models.ChangeSet!
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Changes.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.ChunksAdded.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.ChunksAdded.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.ChunksDeactivated.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.ChunksDeactivated.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Deconstruct(out Instancium.Vectra.Core.Models.ChangeSet! Changes, out Instancium.Vectra.Core.Models.DiskIndexManifest! Manifest, out int ChunksAdded, out int ChunksDeactivated, out bool IndexWritten) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Equals(Instancium.Vectra.Core.Models.IncrementalIndexingResult? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.IncrementalIndexingResult(Instancium.Vectra.Core.Models.ChangeSet! Changes, Instancium.Vectra.Core.Models.DiskIndexManifest! Manifest, int ChunksAdded, int ChunksDeactivated, bool IndexWritten) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.IndexWritten.get -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.IndexWritten.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Manifest.get -> Instancium.Vectra.Core.Models.DiskIndexManifest!
+*REMOVED*Instancium.Vectra.Core.Models.IncrementalIndexingResult.Manifest.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexFileStatus
+*REMOVED*Instancium.Vectra.Core.Models.IndexFileStatus.Failed = 1 -> Instancium.Vectra.Core.Models.IndexFileStatus
+*REMOVED*Instancium.Vectra.Core.Models.IndexFileStatus.Indexed = 0 -> Instancium.Vectra.Core.Models.IndexFileStatus
+*REMOVED*Instancium.Vectra.Core.Models.IndexFileStatus.Removed = 2 -> Instancium.Vectra.Core.Models.IndexFileStatus
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.<Clone>$() -> Instancium.Vectra.Core.Models.IndexingMetrics!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ChunkingDuration.get -> System.TimeSpan
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ChunkingDuration.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ChunksPerSecond.get -> double
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ChunksPerSecond.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.EmbeddingDuration.get -> System.TimeSpan
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.EmbeddingDuration.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.EmbeddingsGenerated.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.EmbeddingsGenerated.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.Equals(Instancium.Vectra.Core.Models.IndexingMetrics? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ExtractionDuration.get -> System.TimeSpan
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.ExtractionDuration.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.IndexingMetrics() -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.PagesPerSecond.get -> double
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.PagesPerSecond.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.PeakWorkingSetMb.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.PeakWorkingSetMb.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalChunks.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalChunks.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalDuration.get -> System.TimeSpan
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalDuration.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalPages.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingMetrics.TotalPages.set -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.<Clone>$() -> Instancium.Vectra.Core.Models.IndexingPipelineRequest!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.ChunkingOptions.get -> Instancium.Vectra.Core.Models.TextChunkingOptions!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.Equals(Instancium.Vectra.Core.Models.IndexingPipelineRequest? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.IndexingPipelineRequest(string! pdfPath, int pageFrom, int pageTo, string! repoId, Instancium.Vectra.Core.Models.TextChunkingOptions? chunkingOptions = null, int maxParallelEmbeddings = 4) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.MaxParallelEmbeddings.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.PageFrom.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.PageTo.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.PdfPath.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineRequest.RepoId.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.<Clone>$() -> Instancium.Vectra.Core.Models.IndexingPipelineResult!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Deconstruct(out Instancium.Vectra.Core.Models.IndexManifest! Manifest, out Instancium.Vectra.Core.Models.IndexingMetrics! Metrics) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Equals(Instancium.Vectra.Core.Models.IndexingPipelineResult? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.IndexingPipelineResult(Instancium.Vectra.Core.Models.IndexManifest! Manifest, Instancium.Vectra.Core.Models.IndexingMetrics! Metrics) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Manifest.get -> Instancium.Vectra.Core.Models.IndexManifest!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Manifest.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Metrics.get -> Instancium.Vectra.Core.Models.IndexingMetrics!
+*REMOVED*Instancium.Vectra.Core.Models.IndexingPipelineResult.Metrics.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.<Clone>$() -> Instancium.Vectra.Core.Models.IndexManifest!
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.ChunkIds.get -> System.Collections.Generic.IReadOnlyList<long>!
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.ChunkIds.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.CreatedAt.get -> System.DateTimeOffset
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.CreatedAt.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Deconstruct(out string! IndexName, out string! Version, out int Dimension, out string! ModelId, out System.DateTimeOffset CreatedAt, out System.Collections.Generic.IReadOnlyList<long>! ChunkIds) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Dimension.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Dimension.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Equals(Instancium.Vectra.Core.Models.IndexManifest? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.IndexManifest(string! IndexName, string! Version, int Dimension, string! ModelId, System.DateTimeOffset CreatedAt, System.Collections.Generic.IReadOnlyList<long>! ChunkIds) -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.IndexName.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.IndexName.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.ModelId.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.ModelId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Version.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.IndexManifest.Version.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.IndexWriteRequest.Files.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>!
+*REMOVED*Instancium.Vectra.Core.Models.IndexWriteRequest.IndexWriteRequest(Instancium.Vectra.Core.Models.DiskIndexManifest! manifest, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.FileState!>! files, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkRecord!>! chunks) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile.<Clone>$() -> Instancium.Vectra.Core.Models.ModifiedFile!
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile.Current.get -> Instancium.Vectra.Core.Models.ScannedFile!
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile.Equals(Instancium.Vectra.Core.Models.ModifiedFile? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile.ModifiedFile(Instancium.Vectra.Core.Models.ScannedFile! current, Instancium.Vectra.Core.Models.FileState! previous) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ModifiedFile.Previous.get -> Instancium.Vectra.Core.Models.FileState!
+*REMOVED*Instancium.Vectra.Core.Models.PageText
+*REMOVED*Instancium.Vectra.Core.Models.PageText.<Clone>$() -> Instancium.Vectra.Core.Models.PageText!
+*REMOVED*Instancium.Vectra.Core.Models.PageText.Equals(Instancium.Vectra.Core.Models.PageText? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.PageText.PageNumber.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.PageText.PageText(int pageNumber, string! text) -> void
+*REMOVED*Instancium.Vectra.Core.Models.PageText.Text.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.<Clone>$() -> Instancium.Vectra.Core.Models.RagContextChunk!
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.ChunkId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.ChunkId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Deconstruct(out long ChunkId, out int PageNumber, out float Score, out string! Snippet) -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Equals(Instancium.Vectra.Core.Models.RagContextChunk? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.PageNumber.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.PageNumber.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.RagContextChunk(long ChunkId, int PageNumber, float Score, string! Snippet) -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Score.get -> float
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Score.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Snippet.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.RagContextChunk.Snippet.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.<Clone>$() -> Instancium.Vectra.Core.Models.RagRequest!
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.EmbeddingRepoId.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.Equals(Instancium.Vectra.Core.Models.RagRequest? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.Question.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.RagRequest(string! question, string! embeddingRepoId, int topK = 3) -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagRequest.TopK.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.<Clone>$() -> Instancium.Vectra.Core.Models.RagRetrievalResult!
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Context.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.RagContextChunk!>!
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Context.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Deconstruct(out string! Question, out System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.RagContextChunk!>! Context) -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Equals(Instancium.Vectra.Core.Models.RagRetrievalResult? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Question.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.Question.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.RagRetrievalResult.RagRetrievalResult(string! Question, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.RagContextChunk!>! Context) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.<Clone>$() -> Instancium.Vectra.Core.Models.ScannedFile!
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.Equals(Instancium.Vectra.Core.Models.ScannedFile? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.FullPath.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.RelativePath.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.ScannedFile(string! fullPath, string! relativePath, string! sha256, long sizeBytes) -> void
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.Sha256.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.ScannedFile.SizeBytes.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.<Clone>$() -> Instancium.Vectra.Core.Models.SearchResult!
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.ChunkId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.ChunkId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Deconstruct(out long ChunkId, out long FileId, out int PageNumber, out float Score, out string! Snippet, out System.ReadOnlyMemory<float> Vector) -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Equals(Instancium.Vectra.Core.Models.SearchResult? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.FileId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.FileId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.PageNumber.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.PageNumber.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Score.get -> float
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Score.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.SearchResult(long ChunkId, long FileId, int PageNumber, float Score, string! Snippet, System.ReadOnlyMemory<float> Vector) -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Snippet.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Snippet.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Vector.get -> System.ReadOnlyMemory<float>
+*REMOVED*Instancium.Vectra.Core.Models.SearchResult.Vector.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.<Clone>$() -> Instancium.Vectra.Core.Models.TextChunk!
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.Equals(Instancium.Vectra.Core.Models.TextChunk? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.PageNumber.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.SourceFile.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.Text.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.TextChunk.TextChunk(string! text, int pageNumber, string! sourceFile) -> void
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.<Clone>$() -> Instancium.Vectra.Core.Models.TextChunkingOptions!
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.ChunkOverlapChars.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.ChunkSizeChars.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.Equals(Instancium.Vectra.Core.Models.TextChunkingOptions? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.TextChunkingOptions() -> void
+*REMOVED*Instancium.Vectra.Core.Models.TextChunkingOptions.TextChunkingOptions(int chunkSizeChars, int chunkOverlapChars) -> void
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.<Clone>$() -> Instancium.Vectra.Core.Models.TextExtractionRequest!
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.Equals(Instancium.Vectra.Core.Models.TextExtractionRequest? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.FilePath.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.PageFrom.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.PageTo.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.TextExtractionRequest.TextExtractionRequest(string! filePath, int pageFrom, int pageTo) -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.<Clone>$() -> Instancium.Vectra.Core.Models.VectorIndexEntry!
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.ChunkId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.ChunkId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Deconstruct(out long ChunkId, out long FileId, out int PageNumber, out string! Snippet, out System.ReadOnlyMemory<float> Vector) -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Equals(Instancium.Vectra.Core.Models.VectorIndexEntry? other) -> bool
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.FileId.get -> long
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.FileId.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.PageNumber.get -> int
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.PageNumber.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Snippet.get -> string!
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Snippet.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Vector.get -> System.ReadOnlyMemory<float>
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.Vector.init -> void
+*REMOVED*Instancium.Vectra.Core.Models.VectorIndexEntry.VectorIndexEntry(long ChunkId, long FileId, int PageNumber, string! Snippet, System.ReadOnlyMemory<float> Vector) -> void
+*REMOVED*override Instancium.Vectra.Core.Models.ChangeSet.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.ChangeSet.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.ChangeSet.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.ExtractedDocument.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.ExtractedDocument.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.ExtractedDocument.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.FileState.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.FileState.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.FileState.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.GoldQuery.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.GoldQuery.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.GoldQuery.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.IncrementalIndexingResult.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.IncrementalIndexingResult.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.IncrementalIndexingResult.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingMetrics.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingMetrics.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingMetrics.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineRequest.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineRequest.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineRequest.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineResult.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineResult.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.IndexingPipelineResult.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.IndexManifest.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.IndexManifest.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.IndexManifest.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.ModifiedFile.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.ModifiedFile.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.ModifiedFile.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.PageText.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.PageText.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.PageText.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.RagContextChunk.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.RagContextChunk.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.RagContextChunk.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.RagRequest.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.RagRequest.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.RagRequest.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.RagRetrievalResult.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.RagRetrievalResult.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.RagRetrievalResult.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.ScannedFile.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.ScannedFile.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.ScannedFile.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.SearchResult.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.SearchResult.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.SearchResult.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunk.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunk.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunk.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunkingOptions.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunkingOptions.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.TextChunkingOptions.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.TextExtractionRequest.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.TextExtractionRequest.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.TextExtractionRequest.ToString() -> string!
+*REMOVED*override Instancium.Vectra.Core.Models.VectorIndexEntry.Equals(object? obj) -> bool
+*REMOVED*override Instancium.Vectra.Core.Models.VectorIndexEntry.GetHashCode() -> int
+*REMOVED*override Instancium.Vectra.Core.Models.VectorIndexEntry.ToString() -> string!
+*REMOVED*static Instancium.Vectra.Core.Models.ChangeSet.operator !=(Instancium.Vectra.Core.Models.ChangeSet? left, Instancium.Vectra.Core.Models.ChangeSet? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ChangeSet.operator ==(Instancium.Vectra.Core.Models.ChangeSet? left, Instancium.Vectra.Core.Models.ChangeSet? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ExtractedDocument.operator !=(Instancium.Vectra.Core.Models.ExtractedDocument? left, Instancium.Vectra.Core.Models.ExtractedDocument? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ExtractedDocument.operator ==(Instancium.Vectra.Core.Models.ExtractedDocument? left, Instancium.Vectra.Core.Models.ExtractedDocument? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.FileState.operator !=(Instancium.Vectra.Core.Models.FileState? left, Instancium.Vectra.Core.Models.FileState? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.FileState.operator ==(Instancium.Vectra.Core.Models.FileState? left, Instancium.Vectra.Core.Models.FileState? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.GoldQuery.operator !=(Instancium.Vectra.Core.Models.GoldQuery? left, Instancium.Vectra.Core.Models.GoldQuery? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.GoldQuery.operator ==(Instancium.Vectra.Core.Models.GoldQuery? left, Instancium.Vectra.Core.Models.GoldQuery? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IncrementalIndexingResult.operator !=(Instancium.Vectra.Core.Models.IncrementalIndexingResult? left, Instancium.Vectra.Core.Models.IncrementalIndexingResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IncrementalIndexingResult.operator ==(Instancium.Vectra.Core.Models.IncrementalIndexingResult? left, Instancium.Vectra.Core.Models.IncrementalIndexingResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingMetrics.operator !=(Instancium.Vectra.Core.Models.IndexingMetrics? left, Instancium.Vectra.Core.Models.IndexingMetrics? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingMetrics.operator ==(Instancium.Vectra.Core.Models.IndexingMetrics? left, Instancium.Vectra.Core.Models.IndexingMetrics? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingPipelineRequest.operator !=(Instancium.Vectra.Core.Models.IndexingPipelineRequest? left, Instancium.Vectra.Core.Models.IndexingPipelineRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingPipelineRequest.operator ==(Instancium.Vectra.Core.Models.IndexingPipelineRequest? left, Instancium.Vectra.Core.Models.IndexingPipelineRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingPipelineResult.operator !=(Instancium.Vectra.Core.Models.IndexingPipelineResult? left, Instancium.Vectra.Core.Models.IndexingPipelineResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexingPipelineResult.operator ==(Instancium.Vectra.Core.Models.IndexingPipelineResult? left, Instancium.Vectra.Core.Models.IndexingPipelineResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexManifest.operator !=(Instancium.Vectra.Core.Models.IndexManifest? left, Instancium.Vectra.Core.Models.IndexManifest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.IndexManifest.operator ==(Instancium.Vectra.Core.Models.IndexManifest? left, Instancium.Vectra.Core.Models.IndexManifest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ModifiedFile.operator !=(Instancium.Vectra.Core.Models.ModifiedFile? left, Instancium.Vectra.Core.Models.ModifiedFile? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ModifiedFile.operator ==(Instancium.Vectra.Core.Models.ModifiedFile? left, Instancium.Vectra.Core.Models.ModifiedFile? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.PageText.operator !=(Instancium.Vectra.Core.Models.PageText? left, Instancium.Vectra.Core.Models.PageText? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.PageText.operator ==(Instancium.Vectra.Core.Models.PageText? left, Instancium.Vectra.Core.Models.PageText? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagContextChunk.operator !=(Instancium.Vectra.Core.Models.RagContextChunk? left, Instancium.Vectra.Core.Models.RagContextChunk? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagContextChunk.operator ==(Instancium.Vectra.Core.Models.RagContextChunk? left, Instancium.Vectra.Core.Models.RagContextChunk? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagRequest.operator !=(Instancium.Vectra.Core.Models.RagRequest? left, Instancium.Vectra.Core.Models.RagRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagRequest.operator ==(Instancium.Vectra.Core.Models.RagRequest? left, Instancium.Vectra.Core.Models.RagRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagRetrievalResult.operator !=(Instancium.Vectra.Core.Models.RagRetrievalResult? left, Instancium.Vectra.Core.Models.RagRetrievalResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.RagRetrievalResult.operator ==(Instancium.Vectra.Core.Models.RagRetrievalResult? left, Instancium.Vectra.Core.Models.RagRetrievalResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ScannedFile.operator !=(Instancium.Vectra.Core.Models.ScannedFile? left, Instancium.Vectra.Core.Models.ScannedFile? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.ScannedFile.operator ==(Instancium.Vectra.Core.Models.ScannedFile? left, Instancium.Vectra.Core.Models.ScannedFile? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.SearchResult.operator !=(Instancium.Vectra.Core.Models.SearchResult? left, Instancium.Vectra.Core.Models.SearchResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.SearchResult.operator ==(Instancium.Vectra.Core.Models.SearchResult? left, Instancium.Vectra.Core.Models.SearchResult? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextChunk.operator !=(Instancium.Vectra.Core.Models.TextChunk? left, Instancium.Vectra.Core.Models.TextChunk? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextChunk.operator ==(Instancium.Vectra.Core.Models.TextChunk? left, Instancium.Vectra.Core.Models.TextChunk? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextChunkingOptions.operator !=(Instancium.Vectra.Core.Models.TextChunkingOptions? left, Instancium.Vectra.Core.Models.TextChunkingOptions? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextChunkingOptions.operator ==(Instancium.Vectra.Core.Models.TextChunkingOptions? left, Instancium.Vectra.Core.Models.TextChunkingOptions? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextExtractionRequest.operator !=(Instancium.Vectra.Core.Models.TextExtractionRequest? left, Instancium.Vectra.Core.Models.TextExtractionRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.TextExtractionRequest.operator ==(Instancium.Vectra.Core.Models.TextExtractionRequest? left, Instancium.Vectra.Core.Models.TextExtractionRequest? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.VectorIndexEntry.operator !=(Instancium.Vectra.Core.Models.VectorIndexEntry? left, Instancium.Vectra.Core.Models.VectorIndexEntry? right) -> bool
+*REMOVED*static Instancium.Vectra.Core.Models.VectorIndexEntry.operator ==(Instancium.Vectra.Core.Models.VectorIndexEntry? left, Instancium.Vectra.Core.Models.VectorIndexEntry? right) -> bool

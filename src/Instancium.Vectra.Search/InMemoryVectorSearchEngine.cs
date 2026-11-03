@@ -4,22 +4,22 @@ namespace Instancium.Vectra.Search;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search.Kernels;
-using Instancium.Vectra.Storage;
 
 /// <summary>
-/// In-memory vector search engine: thin facade over <see cref="ISearchKernel"/> and
-/// optional <see cref="IReranker"/>.
+/// In-memory vector search engine: thin facade over <see cref="ISearchKernel"/>.
 ///
-/// P4 refactor: replaced the interim P3 brute-force dot-product scan with a metric-aware,
-/// SIMD-accelerated kernel resolved by the collection's declared <see cref="SimilarityMetric"/>.
+/// P4 refactor: the interim P3 inline dot-product scan is replaced by a metric-aware,
+/// SIMD-accelerated kernel. The engine depends ONLY on Core contracts: the snapshot is
+/// obtained from <see cref="IVectorStore.CreateSnapshot"/> (implemented in Storage and
+/// injected via DI), which keeps the architecture rule
+/// "Search references Core + System + Microsoft.Extensions.* only" intact.
 ///
-/// Flow:
-///   1. Create snapshot from <see cref="IVectorStore"/> (normalizes Cosine vectors if needed).
-///   2. Resolve <see cref="ISimilarityKernel"/> by metric.
-///   3. Execute <see cref="BruteForceSearchKernel.SearchAsync"/> (overfetch + exact scoring).
-///   4. Apply optional <see cref="IReranker"/> (updates FinalScore, never adds candidates).
-///   5. Hydrate payload text lazily through <see cref="IVectraCollection.GetPayloadTextAsync"/>.
-///   6. Return top-K results.
+/// Flow: snapshot ← store → kernel resolve by metric → brute-force scan (overfetch ≥ topK,
+/// deterministic tie-break) → payload hydration from store metadata → top-K.
+///
+/// TODO [P5]: metric must come from CollectionOptions owned by VectraCollection, and payload
+/// must hydrate lazily through IVectraCollection.GetPayloadTextAsync; until then the interim
+/// engine assumes Cosine (legacy default) and hydrates from IVectorStore.GetMetadata().
 /// </summary>
 public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
 {
@@ -47,47 +47,56 @@ public sealed class InMemoryVectorSearchEngine : IVectorSearchEngine
         if (queryVector.Length != dimension)
         {
             throw new ArgumentException(
-                $"Query dimension {queryVector.Length} does not match store dimension {dimension}.",
+                "Query dimension " + queryVector.Length + " does not match store dimension " + dimension + ".",
                 nameof(queryVector));
         }
 
-        // TODO [P5]: IVectraSnapshot creation should move to VectraCollection.SearchAsync.
-        // Currently we infer metric as Cosine (legacy default); P5 will pass CollectionOptions explicitly.
-        SimilarityMetric metric = SimilarityMetric.Cosine;
+        const SimilarityMetric metric = SimilarityMetric.Cosine;
 
-        using var snapshot = CreateSnapshot(metric);
-        ISimilarityKernel kernel = ResolveKernel(metric);
-        var searchKernel = new BruteForceSearchKernel(kernel);
+        IVectraSnapshot snapshot = _store.CreateSnapshot(metric);
+        ISearchKernel searchKernel = new BruteForceSearchKernel(ResolveKernel(metric));
 
         var query = new SearchQuery(queryVector);
-        var options = new SearchOptions(topK: topK, overfetch: null, reranker: null, includeDiagnostics: false);
+        var options = new SearchOptions(topK: topK);
 
         IReadOnlyList<VectorSearchHit> candidates = await searchKernel
             .SearchAsync(snapshot, query, options, cancellationToken)
             .ConfigureAwait(false);
 
-        // Take top-K (candidates already sorted by score desc, vectorId asc)
-        return candidates.Take(topK).ToList();
+        return HydratePayloads(candidates, topK);
     }
 
-    private InMemoryVectraSnapshot CreateSnapshot(SimilarityMetric metric)
+    private IReadOnlyList<VectorSearchHit> HydratePayloads(
+        IReadOnlyList<VectorSearchHit> candidates,
+        int topK)
     {
-        ReadOnlySpan<float> vectorsSpan = _store.GetVectorsSpan();
-        IReadOnlyList<ChunkMetadata> metadata = _store.GetMetadata();
-
-        int dimension = _store.Dimension;
-        int count = metadata.Count;
-
-        // Copy vectors into new array (snapshot owns the memory)
-        float[] vectors = vectorsSpan.ToArray();
-        long[] vectorIds = new long[count];
-
-        for (int i = 0; i < count; i++)
+        int take = Math.Min(candidates.Count, topK);
+        if (take == 0)
         {
-            vectorIds[i] = metadata[i].ChunkId;
+            return Array.Empty<VectorSearchHit>();
         }
 
-        return new InMemoryVectraSnapshot(vectors, vectorIds, dimension, metric);
+        IReadOnlyList<ChunkMetadata> metadata = _store.GetMetadata();
+        var payloadById = new Dictionary<long, string?>(metadata.Count);
+        foreach (ChunkMetadata entry in metadata)
+        {
+            payloadById[entry.ChunkId] = entry.Payload;
+        }
+
+        var result = new List<VectorSearchHit>(take);
+        for (int i = 0; i < take; i++)
+        {
+            VectorSearchHit hit = candidates[i];
+            payloadById.TryGetValue(hit.VectorId, out string? payload);
+            result.Add(new VectorSearchHit(
+                hit.VectorId,
+                hit.VectorScore,
+                hit.FinalScore,
+                payload,
+                hit.Diagnostics));
+        }
+
+        return result;
     }
 
     private static ISimilarityKernel ResolveKernel(SimilarityMetric metric)
