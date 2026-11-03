@@ -33,7 +33,7 @@ Instancium.Vectra.Core.Contracts.ISimilarityKernel.Metric.get -> Instancium.Vect
 Instancium.Vectra.Core.Contracts.ISimilarityKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
 Instancium.Vectra.Core.Contracts.IVectorSearchEngine
 Instancium.Vectra.Core.Contracts.IVectorSearchEngine.SearchAsync(Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
-Instancium.Vectra.Core.Contracts.IVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+
 Instancium.Vectra.Core.Contracts.IVectorStore
 Instancium.Vectra.Core.Contracts.IVectorStore.Count.get -> int
 Instancium.Vectra.Core.Contracts.IVectorStore.CreateSnapshot(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.IVectraSnapshot!
@@ -261,3 +261,5 @@ static Instancium.Vectra.Core.Models.VectorEntry.operator !=(Instancium.Vectra.C
 static Instancium.Vectra.Core.Models.VectorEntry.operator ==(Instancium.Vectra.Core.Models.VectorEntry? left, Instancium.Vectra.Core.Models.VectorEntry? right) -> bool
 static Instancium.Vectra.Core.Models.VectorSearchHit.operator !=(Instancium.Vectra.Core.Models.VectorSearchHit? left, Instancium.Vectra.Core.Models.VectorSearchHit? right) -> bool
 static Instancium.Vectra.Core.Models.VectorSearchHit.operator ==(Instancium.Vectra.Core.Models.VectorSearchHit? left, Instancium.Vectra.Core.Models.VectorSearchHit? right) -> bool
+Instancium.Vectra.Core.Contracts.VectorSearchEngineExtensions
+static Instancium.Vectra.Core.Contracts.VectorSearchEngineExtensions.SearchAsync(this Instancium.Vectra.Core.Contracts.IVectorSearchEngine! engine, System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!

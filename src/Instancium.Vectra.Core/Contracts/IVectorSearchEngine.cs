@@ -7,6 +7,10 @@ using Instancium.Vectra.Core.Models;
 /// Interim shape (P4): a thin wrapper over <see cref="ISearchKernel"/> with optional
 /// <see cref="SearchOptions.Reranker"/> support. In P5 this contract is superseded by
 /// <see cref="IVectraCollection.SearchAsync"/> and will be removed.
+///
+/// A convenience overload for callers that do not supply <see cref="SearchOptions"/> is
+/// provided as an extension method in <see cref="VectorSearchEngineExtensions"/> to keep
+/// this interface minimal (one public overload, no RS0026/RS0027 violations).
 /// </summary>
 public interface IVectorSearchEngine
 {
@@ -20,15 +24,4 @@ public interface IVectorSearchEngine
         SearchQuery query,
         SearchOptions options,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Backward-compatible overload for interim consumers that do not supply options.
-    /// </summary>
-    Task<IReadOnlyList<VectorSearchHit>> SearchAsync(
-        ReadOnlyMemory<float> queryVector,
-        int topK,
-        CancellationToken cancellationToken = default)
-    {
-        return SearchAsync(new SearchQuery(queryVector), new SearchOptions(topK: topK), cancellationToken);
-    }
 }
