@@ -1,6 +1,4 @@
-﻿// tests/Instancium.Vectra.Tests.Arch/ArchitectureTests.cs
-namespace Instancium.Vectra.Tests.Arch;
-
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using Instancium.Vectra.Core.Contracts;
@@ -11,6 +9,12 @@ using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
 using Xunit;
 
+namespace Instancium.Vectra.Tests.Arch;
+
+/// <summary>
+/// Architecture guard tests. Enforces dependency direction and isolation rules
+/// using plain reflection only (no third-party arch-testing dependencies).
+/// </summary>
 [Trait("Category", "Arch")]
 public sealed class ArchitectureTests
 {
@@ -20,6 +24,8 @@ public sealed class ArchitectureTests
     private static readonly Assembly Rag = typeof(RagService).Assembly;
     private static readonly Assembly Search = typeof(InMemoryVectorSearchEngine).Assembly;
     private static readonly Assembly Storage = typeof(InMemoryVectorStore).Assembly;
+
+    // ── Existing layering rules ────────────────────────────────────────────────
 
     [Fact]
     public void Core_ShouldNotReferenceVectraLayersOrGateway()
@@ -78,6 +84,41 @@ public sealed class ArchitectureTests
     {
         Assert.DoesNotContain(References(Infrastructure), name => name == "Instancium.Vectra.Rag");
     }
+
+    // ── P0 rule: Core references only System.* ─────────────────────────────────
+
+    [Fact]
+    public void Core_ShouldReferenceOnlySystemAssemblies()
+    {
+        string[] nonSystem = References(Core)
+            .Where(name => !IsSystemAssembly(name))
+            .ToArray();
+
+        Assert.Empty(nonSystem);
+    }
+
+    // ── P0 rule: Storage/Search must not reference gateway or PDF libraries ────
+
+    [Fact]
+    public void StorageAndSearch_ShouldNotReferenceSignalRPdfPigOrInstantAIGate()
+    {
+        foreach (Assembly assembly in new[] { Storage, Search })
+        {
+            Assert.DoesNotContain(
+                References(assembly),
+                name => name.StartsWith("Microsoft.AspNetCore.SignalR", StringComparison.Ordinal));
+            Assert.DoesNotContain(
+                References(assembly),
+                name => name.StartsWith("UglyToad.PdfPig", StringComparison.Ordinal));
+            Assert.DoesNotContain(
+                References(assembly),
+                name => name.StartsWith("InstantAIGate", StringComparison.Ordinal));
+        }
+    }
+
+    private static bool IsSystemAssembly(string name) =>
+        name is "System" or "netstandard" or "mscorlib" ||
+        name.StartsWith("System.", StringComparison.Ordinal);
 
     private static string[] References(Assembly assembly) =>
         assembly.GetReferencedAssemblies().Select(name => name.Name ?? string.Empty).ToArray();

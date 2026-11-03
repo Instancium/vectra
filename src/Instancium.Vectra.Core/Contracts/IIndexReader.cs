@@ -13,10 +13,6 @@ public interface IIndexReader
     /// <exception cref="FileNotFoundException">Thrown when the artifact is missing.</exception>
     Task<DiskIndexManifest> ReadManifestAsync(string indexDirectory, CancellationToken cancellationToken = default);
 
-    /// <summary>Reads <c>file.state.json</c> ordered by file id.</summary>
-    /// <exception cref="FileNotFoundException">Thrown when the artifact is missing.</exception>
-    Task<IReadOnlyList<FileState>> ReadFileStatesAsync(string indexDirectory, CancellationToken cancellationToken = default);
-
     /// <summary>Reads <c>chunk.map.json</c> ordered by chunk id.</summary>
     /// <exception cref="FileNotFoundException">Thrown when the artifact is missing.</exception>
     Task<IReadOnlyList<ChunkMapEntry>> ReadChunkMapAsync(string indexDirectory, CancellationToken cancellationToken = default);

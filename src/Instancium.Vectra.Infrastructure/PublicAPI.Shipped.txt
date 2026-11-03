@@ -1,0 +1,89 @@
+#nullable enable
+const Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.SectionName = "Vectra:Gateways:Chat" -> string!
+const Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.SectionName = "Vectra:Gateways:Embedding" -> string!
+Instancium.Vectra.Infrastructure.Chat.ChatContractProbe
+Instancium.Vectra.Infrastructure.Chat.ChatContractProbe.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Infrastructure.Chat.ChatProbeStep!>!>!
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.<Clone>$() -> Instancium.Vectra.Infrastructure.Chat.ChatProbeStep!
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ArgumentCount.get -> int
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ArgumentCount.init -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ChatProbeStep(string! Operation, string! WireName, int ArgumentCount, bool Succeeded, string? ServerError, string? Detail = null) -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Deconstruct(out string! Operation, out string! WireName, out int ArgumentCount, out bool Succeeded, out string? ServerError, out string? Detail) -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Detail.get -> string?
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Detail.init -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Equals(Instancium.Vectra.Infrastructure.Chat.ChatProbeStep? other) -> bool
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Operation.get -> string!
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Operation.init -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ServerError.get -> string?
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ServerError.init -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Succeeded.get -> bool
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Succeeded.init -> void
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.WireName.get -> string!
+Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.WireName.init -> void
+Instancium.Vectra.Infrastructure.Chat.InstantAIGateChatAdapter
+Instancium.Vectra.Infrastructure.Chat.InstantAIGateChatAdapter.Dispose() -> void
+Instancium.Vectra.Infrastructure.Chat.InstantAIGateChatAdapter.StreamAnswerAsync(string! prompt, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.ApiKey.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.ApiKey.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.ChatGatewayOptions() -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.HubPath.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.HubPath.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.RepoId.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.RepoId.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.Rpc.get -> Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.Rpc.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.Url.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatGatewayOptions.Url.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ChatHubRpcNames() -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.DestroySession.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.DestroySession.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.GetGatewayStatus.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.GetGatewayStatus.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.JoinSession.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.JoinSession.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.LeaveSession.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.LeaveSession.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveContextOverflow.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveContextOverflow.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveError.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveError.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveSessionClosed.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveSessionClosed.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveTokenDelta.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.ReceiveTokenDelta.set -> void
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.SendPromptDelta.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.ChatHubRpcNames.SendPromptDelta.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.ApiKey.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.ApiKey.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.ConnectionTimeout.get -> System.TimeSpan
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.ConnectionTimeout.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.EmbeddingGatewayOptions() -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.HubPath.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.HubPath.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.MaxParallelRequests.get -> int
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.MaxParallelRequests.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.MaxRetryAttempts.get -> int
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.MaxRetryAttempts.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.RepoId.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.RepoId.set -> void
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.Url.get -> string!
+Instancium.Vectra.Infrastructure.Configuration.EmbeddingGatewayOptions.Url.set -> void
+Instancium.Vectra.Infrastructure.Configuration.VectraConfigurationBuilderExtensions
+Instancium.Vectra.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter.ApplyChatTemplateAsync(string! modelId, System.Collections.Generic.IEnumerable<InstantAIGate.Core.Dtos.Inference.ChatMessage!>! messages, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter.GenerateEmbeddingsAsync(string! modelId, InstantAIGate.Core.Dtos.Inference.EmbeddingRequest! request, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<InstantAIGate.Core.Dtos.Inference.EmbeddingResponse!>!
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter.GetEmbeddingDimensionAsync(string! modelId, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter.StreamDeltaGenerationAsync(string! sessionId, InstantAIGate.Core.Dtos.Inference.ChatMessage! deltaMessage, InstantAIGate.Core.Dtos.Config.InferenceSettings? overrideSettings = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+Instancium.Vectra.Infrastructure.Embeddings.InstantAIGateEmbeddingAdapter.TokenizeDataAsync(string! modelId, string! text, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int[]!>!
+override Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.Equals(object? obj) -> bool
+override Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.GetHashCode() -> int
+override Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.ToString() -> string!
+static Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.operator !=(Instancium.Vectra.Infrastructure.Chat.ChatProbeStep? left, Instancium.Vectra.Infrastructure.Chat.ChatProbeStep? right) -> bool
+static Instancium.Vectra.Infrastructure.Chat.ChatProbeStep.operator ==(Instancium.Vectra.Infrastructure.Chat.ChatProbeStep? left, Instancium.Vectra.Infrastructure.Chat.ChatProbeStep? right) -> bool
+static Instancium.Vectra.Infrastructure.Configuration.VectraConfigurationBuilderExtensions.AddVectraConfiguration(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, string! fileName = "config_vectra.json") -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
+static Instancium.Vectra.Infrastructure.DependencyInjection.ServiceCollectionExtensions.AddVectraChatInfrastructure(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Instancium.Vectra.Infrastructure.DependencyInjection.ServiceCollectionExtensions.AddVectraInfrastructure(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

@@ -26,8 +26,6 @@ public interface IVectraIndexSession
     /// <summary>Manifest of the opened index.</summary>
     DiskIndexManifest Manifest { get; }
 
-    /// <summary>File states loaded from <c>file.state.json</c>; input for incremental indexing and doctor.</summary>
-    IReadOnlyList<FileState> FileStates { get; }
 
     /// <summary>Lazily reads the full text of the chunk from <c>chunks.bin</c>.</summary>
     /// <exception cref="KeyNotFoundException">Thrown when the chunk id is unknown.</exception>

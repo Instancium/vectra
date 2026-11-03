@@ -12,15 +12,6 @@ internal sealed record ManifestDto(
     int FileCount,
     int ChunkCount);
 
-internal sealed record FileStateDto(
-    string Path,
-    string Sha256,
-    long SizeBytes,
-    string Format,
-    IReadOnlyList<long> ChunkIds,
-    DateTimeOffset IndexedAt,
-    IndexFileStatus Status);
-
 internal sealed record ChunkMapEntryDto(
     long ChunkId,
     long FileId,

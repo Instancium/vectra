@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <PackageId>Instancium.Vectra.Sdk</PackageId>
-    <Version>1.1.0-rc.6</Version>
+    <Version>1.1.0</Version>
     <Authors>Instancium</Authors>
     <Company>Instancium</Company>
     <Product>Instancium Vectra</Product>
@@ -47,4 +47,9 @@
       <BuildOutputInPackage Include="$(TargetDir)Instancium.Vectra.Infrastructure.dll" />
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+    <None Include="LICENSE.txt" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

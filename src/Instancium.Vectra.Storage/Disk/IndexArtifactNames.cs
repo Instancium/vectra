@@ -7,7 +7,6 @@ namespace Instancium.Vectra.Storage.Disk;
 public static class IndexArtifactNames
 {
     public const string Manifest = "manifest.json";
-    public const string FileState = "file.state.json";
     public const string ChunkMap = "chunk.map.json";
     public const string Vectors = "vectors.bin";
     public const string Offsets = "offsets.bin";
@@ -16,7 +15,6 @@ public static class IndexArtifactNames
     public static readonly IReadOnlyList<string> All = new[]
     {
         Manifest,
-        FileState,
         ChunkMap,
         Vectors,
         Offsets,

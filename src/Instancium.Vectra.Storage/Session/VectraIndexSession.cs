@@ -26,7 +26,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
     private string? _indexDirectory;
     private DiskIndexManifest? _manifest;
     private IChunkMap? _chunkMap;
-    private IReadOnlyList<FileState>? _fileStates;
 
     public VectraIndexSession(
         IIndexReader reader,
@@ -52,9 +51,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
     public DiskIndexManifest Manifest => _manifest ?? throw SessionNotOpen();
 
     /// <inheritdoc />
-    public IReadOnlyList<FileState> FileStates => _fileStates ?? throw SessionNotOpen();
-
-    /// <inheritdoc />
     public async Task OpenAsync(string indexDirectory, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(indexDirectory);
@@ -63,17 +59,15 @@ public sealed class VectraIndexSession : IVectraIndexSession
         DiskIndexManifest manifest = await _reader.ReadManifestAsync(fullDirectory, cancellationToken).ConfigureAwait(false);
         ValidateCompatibility(manifest);
 
-        IReadOnlyList<FileState> fileStates = await _reader.ReadFileStatesAsync(fullDirectory, cancellationToken).ConfigureAwait(false);
         IReadOnlyList<ChunkMapEntry> chunkEntries = await _reader.ReadChunkMapAsync(fullDirectory, cancellationToken).ConfigureAwait(false);
         ReadOnlyMemory<float> vectors = await _reader.ReadVectorsAsync(fullDirectory, cancellationToken).ConfigureAwait(false);
 
-        ValidateConsistency(manifest, fileStates, chunkEntries, vectors.Length);
+        ValidateConsistency(manifest, chunkEntries, vectors.Length);
 
         LoadVectors(manifest.Dimension, chunkEntries, vectors);
 
         _indexDirectory = fullDirectory;
         _manifest = manifest;
-        _fileStates = fileStates;
         _chunkMap = new InMemoryChunkMap(chunkEntries);
     }
 
@@ -106,15 +100,9 @@ public sealed class VectraIndexSession : IVectraIndexSession
 
     private static void ValidateConsistency(
         DiskIndexManifest manifest,
-        IReadOnlyList<FileState> fileStates,
         IReadOnlyList<ChunkMapEntry> chunkEntries,
         int vectorCount)
     {
-        if (fileStates.Count != manifest.FileCount)
-        {
-            throw Corrupted($"file.state.json holds {fileStates.Count} entries but the manifest declares {manifest.FileCount}.");
-        }
-
         if (chunkEntries.Count != manifest.ChunkCount)
         {
             throw Corrupted($"chunk.map.json holds {chunkEntries.Count} entries but the manifest declares {manifest.ChunkCount}.");
@@ -126,19 +114,11 @@ public sealed class VectraIndexSession : IVectraIndexSession
         }
 
         var fileIds = new HashSet<long>();
-        foreach (FileState file in fileStates)
-        {
-            if (!fileIds.Add(file.FileId))
-            {
-                throw Corrupted($"file.state.json contains duplicate file id {file.FileId}.");
-            }
-        }
-
         foreach (ChunkMapEntry entry in chunkEntries)
         {
-            if (!fileIds.Contains(entry.FileId))
+            if (!fileIds.Add(entry.FileId))
             {
-                throw Corrupted($"chunk.map.json entry {entry.ChunkId} references unknown file id {entry.FileId}.");
+                throw Corrupted($"chunk.map.json contains duplicate file id {entry.FileId}.");
             }
         }
     }
@@ -154,7 +134,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
             }
 
             ReadOnlyMemory<float> vector = vectors.Slice(i * dimension, dimension);
-            // Snippet is intentionally empty: text is hydrated lazily via IChunkTextReader (stage 3).
             _vectorStore.Upsert(entry.ChunkId, entry.FileId, entry.PageNumber, string.Empty, vector);
         }
     }
