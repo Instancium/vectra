@@ -5,7 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+<<<<<<< HEAD
     <Version>1.1.0</Version>
+=======
+    <Version>1.1.0-rc.7</Version>
+>>>>>>> release-prep/v1.1.0-rc.7
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="10.1.0">
