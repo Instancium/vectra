@@ -2,11 +2,9 @@
 Instancium.Vectra.Search.BruteForceSearchKernel
 Instancium.Vectra.Search.BruteForceSearchKernel.BruteForceSearchKernel(Instancium.Vectra.Core.Contracts.ISimilarityKernel! kernel) -> void
 Instancium.Vectra.Search.BruteForceSearchKernel.SearchAsync(Instancium.Vectra.Core.Contracts.IVectraSnapshot! snapshot, Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Search.InMemoryVectorSearchEngine
 Instancium.Vectra.Search.InMemoryVectorSearchEngine.InMemoryVectorSearchEngine(Instancium.Vectra.Core.Contracts.IVectorStore! store) -> void
-Instancium.Vectra.Search.InMemoryVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
-Instancium.Vectra.Search.Kernels.BruteForceSearchKernel
-Instancium.Vectra.Search.Kernels.BruteForceSearchKernel.BruteForceSearchKernel() -> void
-Instancium.Vectra.Search.Kernels.BruteForceSearchKernel.SearchAsync(Instancium.Vectra.Core.Contracts.IVectraSnapshot! snapshot, Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Search.InMemoryVectorSearchEngine.SearchAsync(Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
 Instancium.Vectra.Search.Kernels.CosineKernel
 Instancium.Vectra.Search.Kernels.CosineKernel.CosineKernel() -> void
 Instancium.Vectra.Search.Kernels.CosineKernel.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
@@ -20,6 +18,6 @@ Instancium.Vectra.Search.Kernels.EuclideanKernel.EuclideanKernel() -> void
 Instancium.Vectra.Search.Kernels.EuclideanKernel.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
 Instancium.Vectra.Search.Kernels.EuclideanKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
 Instancium.Vectra.Search.Kernels.SimilarityKernelFactory
+Instancium.Vectra.Search.ServiceCollectionExtensions
 static Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.Create(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel!
-*REMOVED*Instancium.Vectra.Search.InMemoryVectorSearchEngine.InMemoryVectorSearchEngine(Instancium.Vectra.Core.Contracts.IVectorStore! vectorStore) -> void
-*REMOVED*Instancium.Vectra.Search.InMemoryVectorSearchEngine.SearchAsync(System.ReadOnlyMemory<float> queryVector, int topK, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.SearchResult!>!>!
+static Instancium.Vectra.Search.ServiceCollectionExtensions.AddVectraInMemorySearch(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

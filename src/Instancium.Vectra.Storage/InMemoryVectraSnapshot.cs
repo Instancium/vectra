@@ -8,19 +8,20 @@ using Instancium.Vectra.Core.Models;
 /// Immutable, point-in-time snapshot over an <see cref="InMemoryVectorStore"/> COW array.
 ///
 /// Memory ownership:
-///   - DotProduct / Euclidean: the snapshot WRAPS the store array without copying. This is
-///     safe because copy-on-write guarantees the array is never mutated in place; the span
-///     therefore stays valid for the snapshot's lifetime even though the store does not
-///     transfer ownership.
-///   - Cosine: the snapshot materializes ONE L2-normalized copy at construction time so that
-///     <c>CosineKernel</c> degenerates into a dot product on the hot path.
-///     TODO [P5]: move Cosine normalization from snapshot creation to VectraCollection.AddAsync;
-///     current approach rebuilds the normalized copy on every store mutation, which is fine for
-///     in-memory brute force but suboptimal for segmentized storage (P7).
+///   - The snapshot WRAPS the store array without copying. This is safe because
+///     copy-on-write guarantees the array is never mutated in place; the span therefore
+///     stays valid for the snapshot's lifetime even though the store does not transfer
+///     ownership.
 ///
-/// Dispose is intentionally a no-op: instances are cached and shared by the owning store, so
-/// consumers must never dispose them; memory is either store-owned (immutable) or a GC-managed
-/// copy released with the snapshot itself.
+/// Normalization contract (TZ §4.2):
+///   - The snapshot does NOT normalize vectors. For Cosine collections, normalization is
+///     the responsibility of the write path (VectraCollection.AddAsync, introduced in P5)
+///     and of the query path (interim engine normalizes the query). This keeps the
+///     snapshot materialization O(1) and prepares for segmentized storage (P7).
+///
+/// Dispose is intentionally a no-op: instances are cached and shared by the owning store,
+/// so consumers must never dispose them; memory is either store-owned (immutable) or a
+/// GC-managed copy released with the snapshot itself.
 /// </summary>
 public sealed class InMemoryVectraSnapshot : IVectraSnapshot
 {
@@ -44,17 +45,7 @@ public sealed class InMemoryVectraSnapshot : IVectraSnapshot
                 nameof(vectors));
         }
 
-        if (metric == SimilarityMetric.Cosine && dimension > 0 && vectorIds.Length > 0)
-        {
-            float[] normalized = (float[])vectors.Clone();
-            NormalizeInPlace(normalized, dimension);
-            _vectors = normalized;
-        }
-        else
-        {
-            _vectors = vectors;
-        }
-
+        _vectors = vectors;
         _vectorIds = vectorIds;
         Dimension = dimension;
         Metric = metric;
@@ -62,16 +53,13 @@ public sealed class InMemoryVectraSnapshot : IVectraSnapshot
     }
 
     public long VectorCount { get; }
-
     public int Dimension { get; }
-
     public SimilarityMetric Metric { get; }
 
     public ReadOnlySpan<float> GetVector(long slot)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, VectorCount);
-
         int offset = checked((int)(slot * Dimension));
         return _vectors.AsSpan(offset, Dimension);
     }
@@ -80,36 +68,11 @@ public sealed class InMemoryVectraSnapshot : IVectraSnapshot
     {
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, VectorCount);
-
         return _vectorIds[slot];
     }
 
     public void Dispose()
     {
         // No-op by design: see type remarks. The owner (store) retires cached snapshots via GC.
-    }
-
-    private static void NormalizeInPlace(float[] vectors, int dimension)
-    {
-        for (int i = 0; i < vectors.Length; i += dimension)
-        {
-            double sumOfSquares = 0.0;
-            for (int d = 0; d < dimension; d++)
-            {
-                double value = vectors[i + d];
-                sumOfSquares += value * value;
-            }
-
-            float norm = (float)Math.Sqrt(sumOfSquares);
-            if (norm < 1e-12f)
-            {
-                continue; // Zero vector: leave as-is; cosine score degrades to 0 by contract.
-            }
-
-            for (int d = 0; d < dimension; d++)
-            {
-                vectors[i + d] /= norm;
-            }
-        }
     }
 }
