@@ -1,3 +1,4 @@
+#nullable enable
 namespace Instancium.Vectra.Storage.Session;
 
 using Instancium.Vectra.Core.Contracts;
@@ -5,14 +6,14 @@ using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 
 /// <summary>
-/// Default <see cref="IVectraIndexSession"/> implementation (TZ-2 stage 2).
+/// Default <see cref="IVectraIndexSession"/> implementation (v2).
 /// Opens an index written by <see cref="IIndexWriter"/> and materializes it for search:
 /// all vectors are loaded into the injected <see cref="IVectorStore"/>, the chunk map is kept
 /// in memory, and chunk texts stay on disk until requested through <see cref="GetChunkTextAsync"/>.
 /// </summary>
 /// <remarks>
-/// On open the session validates embedding compatibility (dimension and, when configured, model id —
-/// risk R-3) and cross-artifact consistency, failing fast with a pointer to doctor.
+/// On open the session validates embedding compatibility (dimension and, when configured, model id)
+/// and cross-artifact consistency, failing fast with a pointer to <c>doctor</c>.
 /// Inactive chunks are loaded into the vector store as well so that vector positions stay aligned
 /// with the chunk map; retrieval must filter them via <see cref="ChunkMapEntry.IsActive"/>.
 /// </remarks>
@@ -22,7 +23,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
     private readonly IVectorStore _vectorStore;
     private readonly int? _expectedDimension;
     private readonly string? _expectedModelId;
-
     private string? _indexDirectory;
     private DiskIndexManifest? _manifest;
     private IChunkMap? _chunkMap;
@@ -41,16 +41,10 @@ public sealed class VectraIndexSession : IVectraIndexSession
         _expectedModelId = expectedModelId;
     }
 
-    /// <inheritdoc />
     public IVectorStore VectorStore => _vectorStore;
-
-    /// <inheritdoc />
     public IChunkMap ChunkMap => _chunkMap ?? throw SessionNotOpen();
-
-    /// <inheritdoc />
     public DiskIndexManifest Manifest => _manifest ?? throw SessionNotOpen();
 
-    /// <inheritdoc />
     public async Task OpenAsync(string indexDirectory, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(indexDirectory);
@@ -63,7 +57,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
         ReadOnlyMemory<float> vectors = await _reader.ReadVectorsAsync(fullDirectory, cancellationToken).ConfigureAwait(false);
 
         ValidateConsistency(manifest, chunkEntries, vectors.Length);
-
         LoadVectors(manifest.Dimension, chunkEntries, vectors);
 
         _indexDirectory = fullDirectory;
@@ -71,7 +64,6 @@ public sealed class VectraIndexSession : IVectraIndexSession
         _chunkMap = new InMemoryChunkMap(chunkEntries);
     }
 
-    /// <inheritdoc />
     public async ValueTask<string> GetChunkTextAsync(long chunkId, CancellationToken cancellationToken = default)
     {
         string indexDirectory = _indexDirectory ?? throw SessionNotOpen();
@@ -86,7 +78,7 @@ public sealed class VectraIndexSession : IVectraIndexSession
         {
             throw new InvalidOperationException(
                 $"Index dimension {manifest.Dimension} (model '{manifest.ModelId}') does not match the configured " +
-                $"embedding dimension {expectedDimension}. Rebuild the index after changing the embedding model (risk R-3).");
+                $"embedding dimension {expectedDimension}. Rebuild the index after changing the embedding model.");
         }
 
         if (_expectedModelId is { Length: > 0 } expectedModelId &&
@@ -94,10 +86,15 @@ public sealed class VectraIndexSession : IVectraIndexSession
         {
             throw new InvalidOperationException(
                 $"Index was built with model '{manifest.ModelId}' but the configured model is '{expectedModelId}'. " +
-                "Rebuild the index after changing the embedding model (risk R-3).");
+                "Rebuild the index after changing the embedding model.");
         }
     }
 
+    /// <summary>
+    /// Validates cross-artifact consistency of the v2 index.
+    /// v2 model: one file = N chunks, so FileId is NOT unique in the chunk map;
+    /// only ChunkId must be unique. FileId is required to be positive.
+    /// </summary>
     private static void ValidateConsistency(
         DiskIndexManifest manifest,
         IReadOnlyList<ChunkMapEntry> chunkEntries,
@@ -113,12 +110,17 @@ public sealed class VectraIndexSession : IVectraIndexSession
             throw Corrupted($"vectors.bin holds {vectorCount} values but the manifest declares {manifest.ChunkCount * manifest.Dimension} values.");
         }
 
-        var fileIds = new HashSet<long>();
+        var chunkIds = new HashSet<long>();
         foreach (ChunkMapEntry entry in chunkEntries)
         {
-            if (!fileIds.Add(entry.FileId))
+            if (entry.FileId < 1L)
             {
-                throw Corrupted($"chunk.map.json contains duplicate file id {entry.FileId}.");
+                throw Corrupted($"chunk.map.json entry {entry.ChunkId} has invalid file id {entry.FileId}.");
+            }
+
+            if (!chunkIds.Add(entry.ChunkId))
+            {
+                throw Corrupted($"chunk.map.json contains duplicate chunk id {entry.ChunkId}.");
             }
         }
     }

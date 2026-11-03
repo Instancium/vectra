@@ -6,22 +6,23 @@ using Instancium.Vectra.Storage.Session;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+/// <summary>
+/// DI registration for the storage layer: in-memory vector store, on-disk index
+/// reader/writer, directory resolver and index session.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddVectraStorage(this IServiceCollection services, string? baseDirectory = null)
+    public static IServiceCollection AddVectraDiskIndex(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.TryAddSingleton<IInstanciumDirectoryResolver>(_ => new InstanciumDirectoryResolver(baseDirectory));
-        services.AddSingleton<IIndexWriter, DiskIndexWriter>();
-        services.AddSingleton<IIndexReader, DiskIndexReader>();
-        services.AddSingleton<IVectraIndexSession>(provider => new VectraIndexSession(
+        services.TryAddSingleton<IVectorStore, InMemoryVectorStore>();
+        services.TryAddSingleton<IInstanciumDirectoryResolver, InstanciumDirectoryResolver>();
+        services.TryAddSingleton<IIndexWriter, DiskIndexWriter>();
+        services.TryAddSingleton<IIndexReader, DiskIndexReader>();
+        services.TryAddSingleton<IVectraIndexSession>(provider => new VectraIndexSession(
             provider.GetRequiredService<IIndexReader>(),
             provider.GetRequiredService<IVectorStore>()));
-
         return services;
     }
-
-    public static IServiceCollection AddVectraDiskIndex(this IServiceCollection services) =>
-        services.AddVectraStorage();
 }

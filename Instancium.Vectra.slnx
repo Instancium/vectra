@@ -1,17 +1,11 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Instancium.Vectra.Cli/Instancium.Vectra.Cli.csproj" />
     <Project Path="src/Instancium.Vectra.Core/Instancium.Vectra.Core.csproj" />
-    <Project Path="src/Instancium.Vectra.Indexing/Instancium.Vectra.Indexing.csproj" />
-    <Project Path="src/Instancium.Vectra.Infrastructure/Instancium.Vectra.Infrastructure.csproj" />
-    <Project Path="src/Instancium.Vectra.Rag/Instancium.Vectra.Rag.csproj" />
-    <Project Path="src/Instancium.Vectra.Sdk/Instancium.Vectra.Sdk.csproj" />
     <Project Path="src/Instancium.Vectra.Search/Instancium.Vectra.Search.csproj" />
     <Project Path="src/Instancium.Vectra.Storage/Instancium.Vectra.Storage.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Instancium.Vectra.Tests.Arch/Instancium.Vectra.Tests.Arch.csproj" />
-    <Project Path="tests/Instancium.Vectra.Tests.Integration/Instancium.Vectra.Tests.Integration.csproj" Id="172f5563-3259-4269-aa30-27be424353e6" />
     <Project Path="tests/Instancium.Vectra.Tests.Unit/Instancium.Vectra.Tests.Unit.csproj" />
   </Folder>
 </Solution>
