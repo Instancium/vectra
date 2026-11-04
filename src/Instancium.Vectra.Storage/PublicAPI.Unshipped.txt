@@ -1,1 +1,45 @@
 #nullable enable
+~override Instancium.Vectra.Storage.Segments.SegmentMapEntry.Equals(object obj) -> bool
+~override Instancium.Vectra.Storage.Segments.SegmentMapEntry.ToString() -> string
+const Instancium.Vectra.Storage.Segments.SegmentWriter.MapRecordSize = 20 -> int
+Instancium.Vectra.Storage.Segments.SegmentEntry
+Instancium.Vectra.Storage.Segments.SegmentEntry.<Clone>$() -> Instancium.Vectra.Storage.Segments.SegmentEntry!
+Instancium.Vectra.Storage.Segments.SegmentEntry.Equals(Instancium.Vectra.Storage.Segments.SegmentEntry? other) -> bool
+Instancium.Vectra.Storage.Segments.SegmentEntry.Payload.get -> string?
+Instancium.Vectra.Storage.Segments.SegmentEntry.SegmentEntry(long vectorId, System.ReadOnlyMemory<float> vector, string? payload = null) -> void
+Instancium.Vectra.Storage.Segments.SegmentEntry.Vector.get -> System.ReadOnlyMemory<float>
+Instancium.Vectra.Storage.Segments.SegmentEntry.VectorId.get -> long
+Instancium.Vectra.Storage.Segments.SegmentFileNames
+Instancium.Vectra.Storage.Segments.SegmentMapEntry
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.Deconstruct(out long VectorId, out long PayloadOffset, out int PayloadLength) -> void
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.Equals(Instancium.Vectra.Storage.Segments.SegmentMapEntry other) -> bool
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.PayloadLength.get -> int
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.PayloadLength.init -> void
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.PayloadOffset.get -> long
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.PayloadOffset.init -> void
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.SegmentMapEntry() -> void
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.SegmentMapEntry(long VectorId, long PayloadOffset, int PayloadLength) -> void
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.VectorId.get -> long
+Instancium.Vectra.Storage.Segments.SegmentMapEntry.VectorId.init -> void
+Instancium.Vectra.Storage.Segments.SegmentReader
+Instancium.Vectra.Storage.Segments.SegmentReader.OpenVectorsMemoryMapped(string! directory, long segmentId) -> System.IO.MemoryMappedFiles.MemoryMappedFile!
+Instancium.Vectra.Storage.Segments.SegmentReader.ReadMapAsync(string! directory, long segmentId, int vectorCount, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Storage.Segments.SegmentMapEntry>!>!
+Instancium.Vectra.Storage.Segments.SegmentReader.ReadPayloadAsync(string! directory, long segmentId, long offset, int length, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Instancium.Vectra.Storage.Segments.SegmentReader.ReadVectorsAsync(string! directory, long segmentId, int dimension, int vectorCount, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<float[]!>!
+Instancium.Vectra.Storage.Segments.SegmentReader.SegmentReader() -> void
+Instancium.Vectra.Storage.Segments.SegmentReader.VerifyChecksumsAsync(string! directory, Instancium.Vectra.Core.Models.SegmentManifestEntry! manifest, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Instancium.Vectra.Storage.Segments.SegmentWriter
+Instancium.Vectra.Storage.Segments.SegmentWriter.SegmentWriter() -> void
+Instancium.Vectra.Storage.Segments.SegmentWriter.WriteSegmentAsync(string! directory, long segmentId, int dimension, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Storage.Segments.SegmentEntry!>! entries, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.SegmentManifestEntry!>!
+override Instancium.Vectra.Storage.Segments.SegmentEntry.Equals(object? obj) -> bool
+override Instancium.Vectra.Storage.Segments.SegmentEntry.GetHashCode() -> int
+override Instancium.Vectra.Storage.Segments.SegmentEntry.ToString() -> string!
+override Instancium.Vectra.Storage.Segments.SegmentMapEntry.GetHashCode() -> int
+static Instancium.Vectra.Storage.Segments.SegmentEntry.operator !=(Instancium.Vectra.Storage.Segments.SegmentEntry? left, Instancium.Vectra.Storage.Segments.SegmentEntry? right) -> bool
+static Instancium.Vectra.Storage.Segments.SegmentEntry.operator ==(Instancium.Vectra.Storage.Segments.SegmentEntry? left, Instancium.Vectra.Storage.Segments.SegmentEntry? right) -> bool
+static Instancium.Vectra.Storage.Segments.SegmentFileNames.GetMapFileName(long segmentId) -> string!
+static Instancium.Vectra.Storage.Segments.SegmentFileNames.GetPayloadFileName(long segmentId) -> string!
+static Instancium.Vectra.Storage.Segments.SegmentFileNames.GetQuantizedFileName(long segmentId) -> string!
+static Instancium.Vectra.Storage.Segments.SegmentFileNames.GetVectorsFileName(long segmentId) -> string!
+static Instancium.Vectra.Storage.Segments.SegmentMapEntry.operator !=(Instancium.Vectra.Storage.Segments.SegmentMapEntry left, Instancium.Vectra.Storage.Segments.SegmentMapEntry right) -> bool
+static Instancium.Vectra.Storage.Segments.SegmentMapEntry.operator ==(Instancium.Vectra.Storage.Segments.SegmentMapEntry left, Instancium.Vectra.Storage.Segments.SegmentMapEntry right) -> bool
