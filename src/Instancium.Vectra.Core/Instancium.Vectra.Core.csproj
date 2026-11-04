@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
-    <Version>1.1.0-rc.20</Version>
+    <Version>1.1.0-rc.21</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Update="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
