@@ -99,6 +99,67 @@ public sealed class InMemoryVectorStore : IVectorStore
         }
     }
 
+    public bool Remove(long chunkId)
+    {
+        lock (_sync)
+        {
+            ChunkMetadata[] oldMetadata = _metadata;
+            int indexToRemove = -1;
+            for (int i = 0; i < oldMetadata.Length; i++)
+            {
+                if (oldMetadata[i].ChunkId == chunkId)
+                {
+                    indexToRemove = i;
+                    break;
+                }
+            }
+
+            if (indexToRemove < 0)
+            {
+                return false;
+            }
+
+            int newCount = oldMetadata.Length - 1;
+            float[] oldVectors = _vectors;
+
+            float[] replacedVectors = new float[newCount * _dimension];
+            ChunkMetadata[] replacedMetadata = new ChunkMetadata[newCount];
+
+            if (indexToRemove > 0)
+            {
+                Array.Copy(oldMetadata, 0, replacedMetadata, 0, indexToRemove);
+                Array.Copy(oldVectors, 0, replacedVectors, 0, indexToRemove * _dimension);
+            }
+
+            if (indexToRemove < newCount)
+            {
+                Array.Copy(oldMetadata, indexToRemove + 1, replacedMetadata, indexToRemove, newCount - indexToRemove);
+                Array.Copy(oldVectors, (indexToRemove + 1) * _dimension, replacedVectors, indexToRemove * _dimension, (newCount - indexToRemove) * _dimension);
+            }
+
+            Volatile.Write(ref _vectors, replacedVectors);
+            Volatile.Write(ref _metadata, replacedMetadata);
+            _version++;
+            _cachedSnapshot = null;
+            _cachedVersion = -1;
+            return true;
+        }
+    }
+
+    public string? GetPayload(long chunkId)
+    {
+        ChunkMetadata[] currentMetadata = Volatile.Read(ref _metadata);
+        foreach (ChunkMetadata meta in currentMetadata)
+        {
+            if (meta.ChunkId == chunkId)
+            {
+                return meta.Payload;
+            }
+        }
+
+        return null;
+    }
+
     public ReadOnlySpan<float> GetVectorsSpan() => Volatile.Read(ref _vectors);
 
     public IReadOnlyList<ChunkMetadata> GetMetadata() => Volatile.Read(ref _metadata);

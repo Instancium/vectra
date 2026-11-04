@@ -14,6 +14,18 @@ public interface IVectorStore
     int Dimension { get; }
 
     /// <summary>
+    /// Soft-deletes a vector from the active dataset.
+    /// Returns true if the vector was found and removed, false otherwise.
+    /// </summary>
+    bool Remove(long chunkId);
+
+    /// <summary>
+    /// Retrieves the payload associated with the vector.
+    /// Provides immediate payload resolution for interim architectures before segmentized lazy-loading is introduced.
+    /// </summary>
+    string? GetPayload(long chunkId);
+
+    /// <summary>
     /// Returns a span over the immutable COW vector array. The span is safe because the
     /// backing array is never mutated in place; writes replace the array atomically.
     /// </summary>

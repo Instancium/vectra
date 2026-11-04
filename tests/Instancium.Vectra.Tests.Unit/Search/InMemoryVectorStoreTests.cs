@@ -49,5 +49,43 @@ public sealed class InMemoryVectorStoreTests
         store.Upsert(1, 1, 1, "a", new[] { 1f, 2f });
         Assert.Throws<ArgumentException>(() => store.Upsert(2, 1, 1, "b", new[] { 1f, 2f, 3f }));
     }
+
+    [Fact]
+    public void Store_ShouldRemoveExistingChunkAndReturnTrue()
+    {
+        var store = new InMemoryVectorStore();
+        store.Upsert(1, 1, 1, "A", new[] { 1f, 2f });
+        store.Upsert(2, 1, 1, "B", new[] { 3f, 4f });
+
+        bool removed = store.Remove(1);
+
+        Assert.True(removed);
+        Assert.Equal(1, store.Count);
+        Assert.Equal(2, store.GetMetadata()[0].ChunkId);
+        Assert.Equal(3f, store.GetVectorsSpan()[0]);
+    }
+
+    [Fact]
+    public void Store_ShouldReturnFalseWhenRemovingNonExistentChunk()
+    {
+        var store = new InMemoryVectorStore();
+        store.Upsert(1, 1, 1, "A", new[] { 1f, 2f });
+
+        bool removed = store.Remove(999);
+
+        Assert.False(removed);
+        Assert.Equal(1, store.Count);
+    }
+
+    [Fact]
+    public void Store_ShouldGetPayloadForExistingChunk()
+    {
+        var store = new InMemoryVectorStore();
+        store.Upsert(1, 1, 1, "PayloadA", new[] { 1f, 2f });
+
+        string? payload = store.GetPayload(1);
+
+        Assert.Equal("PayloadA", payload);
+    }
 }
 

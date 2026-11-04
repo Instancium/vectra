@@ -36,6 +36,11 @@ public sealed class BruteForceSearchKernel : ISearchKernel
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(options);
 
+        if (query.Filter is not null)
+        {
+            throw new NotSupportedException("Metadata filtering is reserved for future implementation and currently not supported. IExpression evaluator is missing.");
+        }
+
         if (query.Vector.Length != snapshot.Dimension)
         {
             throw new ArgumentException(
