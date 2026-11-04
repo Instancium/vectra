@@ -6,11 +6,23 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<!-- Condition: отсутствующий файл больше не роняет билд (CS2001/AD0001) -->
+
 	<ItemGroup>
 		<AdditionalFiles Include="$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt"
 						 Condition="Exists('$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt')" />
 		<AdditionalFiles Include="$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt"
 						 Condition="Exists('$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt')" />
 	</ItemGroup>
+
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!-- 
+			CS1591: Missing XML comment for publicly visible type or member
+			CS1574: XML comment has cref attribute that could not be resolved
+			CS1572: XML comment has a param tag, but there is no parameter by that name
+			CS1573: Parameter has no matching param tag in the XML comment
+		  -->
+		<NoWarn>$(NoWarn);CS1591;CS1574;CS1572;CS1573</NoWarn>
+	</PropertyGroup>
+	
 </Project>

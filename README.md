@@ -1,313 +1,166 @@
 # Instancium Vectra
 
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache2.0-blue.svg)](LICENSE)
-[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
-[![Client for InstantAIGate](https://img.shields.io/badge/Client%20for-InstantAIGate-007acc.svg)](https://github.com/Instancium/instant-ai-gate)
+**Ultra-fast, zero-dependency, in-process vector database and search engine for .NET 10.**
 
-**High-Performance In-Memory Vector Search & RAG Pipeline for .NET 10**
+**Instancium Vectra** is designed to provide high-performance vector storage and semantic search directly inside your .NET applications. It eliminates the operational overhead of running external database clusters, Docker containers, or managing complex C++ P/Invoke binaries across diverse target environments.
 
-Instancium.Vectra is a self-contained semantic search and RAG engine that runs entirely within a .NET process. It ingests PDF documents, generates embeddings via [InstantAIGate](https://github.com/Instancium/instant-ai-gate) inference gateways, stores vectors in memory with SIMD-accelerated brute-force search, and produces grounded answers through a chat gateway — no external vector database required.
+Built on an **Open Core** philosophy and distributed under the **Apache-2.0** license, Vectra delivers enterprise-grade deterministic search, memory-mapped disk segments, append-only WAL logging, and managed hardware acceleration (`Vector256` / `Vector512`) right out of the box.
 
----
+## Why Vectra?
 
-## Current Status: MVP
+| Characteristic | Traditional Vector DBs (Qdrant, Milvus, Pinecone) | Native C/C++ Libraries (FAISS, Hnswlib) | **Instancium Vectra** |
+| :--- | :--- | :--- | :--- |
+| **Deployment** | Client-server (Docker, K8s, Cloud SaaS) | In-process, but platform-dependent | **True In-Process (Embedded)** |
+| **Setup Overhead** | Ports, network security, cluster management | Cross-compiling, P/Invoke, ABI issues | **1 package: `dotnet add package`** |
+| **Dependencies** | gRPC / REST network stacks | Heavy C++ shared runtimes (`.dll`/`.so`) | **0 mandatory dependencies (pure BCL)** |
+| **Data Perimeter** | Potential network exposure | Local | **Local & Air-gapped by default** |
+| **Target Workloads** | Heavy backend microservices | Research scripts, single-node C++ | **Desktop (MAUI/Lens), Edge, Microservices** |
 
-The project validates the core hypothesis:
+### The Core Problem Solved
 
-> *An agent takes a PDF, quickly chunks and embeds it, holds vectors in memory, and delivers fast, accurate retrieval-augmented answers.*
+Embedding AI search into desktop apps (such as [Instancium Lens](https://github.com/instancium/lens)), local worker agents, or self-contained microservices should not require spinning up external network services or fighting transient native crash dumps. Vectra embeds seamlessly into any .NET 10 application with zero configuration.
 
-### Measured Success Criteria
+## Key Architectural Principles
 
-| Metric | Target |
-|---|---|
-| Retrieval accuracy (Top-3 hit-rate, gold query set) | ≥ 80 % |
-| Search latency (p95, in-process, brute-force SIMD) | < 20 ms |
-| 20-page end-to-end indexing (incl. live embeddings) | Completes without errors |
-| Determinism (same query → same results) | Guaranteed |
+1. **Clean Separation of Responsibilities:**
+   * **Vectra does not chunk text or parse PDFs.** Upstream pipelines handle data extraction.
+   * **Vectra does not mandate an LLM or Embedding model.** Upstream gateways (like [InstantAIGate](https://github.com/instancium/instant-ai-gate)) provide vectors via `IEmbeddingProvider`.
+   * **Vectra stores, indexes, and searches vectors deterministically.**
 
-### Explicitly Out of Scope (YAGNI)
+2. **Deterministic Search with Conformance Guards:**
+   * Every similarity calculation (`Cosine`, `DotProduct`, `Euclidean`) is verified against a `ReferenceSimilarityKernel` (double-precision accumulation) with a strict relative error bound (`<= 1e-5`).
+   * Tie-breaking is deterministic (ordered by `VectorScore` descending, then `VectorId` ascending).
 
-Disk persistence (`vectors.bin` / `manifest.json`), incremental re-indexing, SHA-256 deduplication, Worker mode, HNSW / IVF indexes, P/Invoke native acceleration, model hot-swap. These belong to post-MVP evolution (see [Concept](#long-term-vision)).
+3. **v2 Segmented Storage & WAL:**
+   * Immutable disk segments (`.vec`, `.map`, `.pay`) designed for `MemoryMappedFile` zero-copy reads.
+   * Append-only Write-Ahead Logging (WAL) ensures atomic mutations without rewriting full indices on updates.
 
----
+4. **Transparent Scoring:**
+   * Raw hardware `VectorScore` is never mutated or obscured.
+   * Lexical, cross-encoder, or BM25 reranking is delegated to modular `IReranker` implementations.
 
-## Architecture
+## Installation
 
-```
-┌──────────────────────────────────────────────────────────-───┐
-│                     Instancium.Vectra.Cli                    │
-│              REPL · one-shot commands · bench                │
-└──────┬──────────┬──────────┬─────────-─┬──────────┬──────────┘
-       │          │          │           │          │
-┌──────▼─-─┐ ┌────▼────┐ ┌───▼───-─┐ ┌───▼───┐ ┌─-──▼──----─--─┐
-│ Indexing │ │ Search  │ │ Storage │ │  Rag  │ │ Infrastructure│
-│ Pipeline │ │ Engine  │ │ Store   │ │Service│ │               │
-└──────┬──-┘ └────┬────┘ └───┬───-─┘ └───┬───┘ └───┬───-------─┘
-       │          │          │           │         │
-┌──────▼────────-─▼──────────▼────────-──▼─────────▼─-─────────┐
-│                    Instancium.Vectra.Core                    │
-│                  Contracts · Models · Exceptions             │
-└───────────────────────────────────────────────────────-──────┘
-```
-
-### Module Responsibilities
-
-| Project | Responsibility |
-|---|---|
-| **Core** | Contracts (`IVectorStore`, `IVectorSearchEngine`, `IIndexingPipeline`, `IRagService`, `ITextExtractor`, `ITextChunker`, `IChatCompletionClient`), domain models, exceptions. Zero external dependencies. |
-| **Indexing** | PDF text extraction (PdfPig), page-aware fixed-size chunking, orchestration pipeline. Depends on `InstantAIGate.Core` contracts only. |
-| **Infrastructure** | SignalR adapters for embedding and chat gateways. The **only** layer that knows about SignalR transport. Error mapping, retry with backoff, token budget validation. |
-| **Storage** | `InMemoryVectorStore` — flat vector array + chunk metadata. Thread-safe upsert, span-based access. |
-| **Search** | `InMemoryVectorSearchEngine` — brute-force dot product with `System.Numerics.Vector<T>` SIMD, Top-K via `PriorityQueue`. |
-| **Rag** | `RagService` — query embedding → vector search → lexical re-ranking → prompt construction → streamed chat answer. `RagPromptBuilder` enforces citation and refusal contracts. |
-| **Cli** | DI composition, REPL loop, one-shot commands, benchmark runner. |
-
-### Architectural Invariants (enforced by `ArchitectureTests`)
-
-- **Core** references no other Vectra layer and no `InstantAIGate` types.
-- **Indexing** never references **Infrastructure** or SignalR.
-- **Storage** and **Search** reference only **Core**.
-- **SignalR** is known exclusively to **Infrastructure**.
-- **Rag** never references **Infrastructure**, **Indexing**, or SignalR.
-
----
-
-## Pipeline Flow
-
-```
-PDF file
-  │
-  ▼
-PdfTextExtractor          (PdfPig, page range [from..to])
-  │  IReadOnlyList<PageText>
-  ▼
-PageAwareFixedSizeChunker (1200 chars, 200 overlap, no cross-page splits)
-  │  IReadOnlyList<TextChunk>
-  ▼
-InstantAIGateEmbeddingAdapter  (SignalR → embedding gateway :5001)
-  │  Parallel.ForEachAsync, MaxParallelism = 4
-  │  retry on 429, context overflow guard
-  ▼
-InMemoryVectorStore.Upsert()
-  │
-  ▼
-InMemoryVectorSearchEngine.SearchAsync()   (SIMD dot product, Top-K)
-  │
-  ▼
-RagService.RetrieveAsync()   (lexical IDF re-rank boost)
-  │
-  ▼
-RagPromptBuilder.Build()     (numbered citations, refusal fallback)
-  │
-  ▼
-InstantAIGateChatAdapter.StreamAnswerAsync()  (SignalR → chat gateway :5000)
-  │  IAsyncEnumerable<string>
-  ▼
-Console / caller
-```
-
----
-
-## Quick Start
-
-### Prerequisites
-
-1. **Embedding gateway** running on `http://localhost:5001` with model `qwen3-embedding-0.6b` loaded and `Embeddings: true` in its hardware profile.
-2. **Chat gateway** running on `http://localhost:5000` with a chat model loaded (e.g. `qwen3-4b-instruct`). Required only for `ask` command.
-3. API key with `GatewayUser` role.
-
-### Environment Variables
-
-| Variable | Purpose | Default |
-|---|---|---|
-| `VECTRA_GATEWAY_API_KEY` | Bearer token for both gateways | **required** |
-| `VECTRA_EMBEDDING_GATEWAY_URL` | Embedding gateway base URL | `http://localhost:5001` |
-| `VECTRA_CHAT_GATEWAY_URL` | Chat gateway base URL | `http://localhost:5000` |
-
-### Build & Run
+Add the single consolidated package to your .NET 10 project:
 
 ```bash
-dotnet build Instancium.Vectra.slnx
-
-# Interactive REPL (index persists in process memory across commands)
-dotnet run --project src/Instancium.Vectra.Cli
-
-# One-shot indexing
-dotnet run --project src/Instancium.Vectra.Cli -- index ./corpus/book.pdf 1 20
-
-# One-shot search (requires REPL for index persistence)
-dotnet run --project src/Instancium.Vectra.Cli -- search "temperature measurement" 3
+dotnet add package Instancium.Vectra
 ```
 
-### CLI Commands
+*(No native drivers, C++ redistributables, or configuration files required).*
 
-| Command | Description |
-|---|---|
-| `index <pdf> <from> <to>` | Extract pages, chunk, embed, store in memory |
-| `search "<query>" [topK]` | Vector search with timing breakdown |
-| `ask "<question>" [topK]` | Retrieve Top-K context + stream grounded answer from chat gateway |
-| `stats` | Vector count, dimension, page range, file count |
-| `bench <pdf> [iterations]` | Run 20 → 50 → 100 page benchmark matrix, write `artifacts/bench-report.md` |
-| `probe-chat` | Validate chat gateway wire contract (guide v1.4 handshake) |
-| `help` | Print usage |
-| `exit` / `quit` | Stop REPL |
+## Quickstart
 
-> **Note:** In one-shot mode the index is discarded when the process exits. Use the REPL to keep the index across multiple commands.
+### 1. Vector Search (Core Engine)
 
----
+```csharp
+using Instancium.Vectra;
+using Instancium.Vectra.Core.Models;
 
-## Configuration
-
-Configuration is loaded from `config_vectra.json` (and optional `config_vectra.local.json` override) in the output directory.
-
-```json
+// 1. Initialize the engine with zero external config
+using IVectraEngine engine = VectraEngineFactory.Create(new VectraOptions
 {
-  "Vectra": {
-    "Gateways": {
-      "Embedding": {
-        "Url": "http://localhost:5001",
-        "HubPath": "/hub/gateway",
-        "RepoId": "qwen3-embedding-0.6b",
-        "MaxParallelRequests": 4,
-        "MaxRetryAttempts": 3,
-        "ConnectionTimeout": "00:00:30"
-      },
-      "Chat": {
-        "Url": "http://localhost:5000",
-        "HubPath": "/hub/gateway",
-        "RepoId": "qwen3-vl-8b-instruct"
-      }
-    },
-    "Indexing": {
-      "ChunkSizeChars": 1200,
-      "ChunkOverlapChars": 200
-    },
-    "Cli": {
-      "DefaultTopK": 3,
-      "DefaultBenchIterations": 5,
-      "BenchPageWindows": [20, 50, 100]
-    }
-  }
+    BaseDirectory = "./data/vectra"
+});
+
+// 2. Open or create a strongly-typed collection
+IVectraCollection collection = engine.GetOrOpenCollection("technical-specs", new CollectionOptions(
+    Dimension: 768,
+    Metric: SimilarityMetric.Cosine,
+    ModelId: "qwen3-embedding-0.6b"
+));
+
+// 3. Ingest vectors with associated payload text
+var sampleVector = new float[768]; // populate from your embedding source
+long vectorId = await collection.AddAsync(new VectorEntry(
+    VectorId: null, // auto-generated
+    Vector: sampleVector,
+    Payload: "The differential pressure transmitter measures pressure across two ports."
+));
+
+// 4. Perform ultra-fast SIMD search
+var results = await collection.SearchAsync(
+    new SearchQuery(sampleVector),
+    new SearchOptions(TopK: 3)
+);
+
+foreach (var hit in results)
+{
+    Console.WriteLine($"[Hit #{hit.VectorId}] Raw Score: {hit.VectorScore:F4}");
+    Console.WriteLine($"Payload: {hit.Payload}");
 }
 ```
 
-API keys are resolved from environment variables first, then from configuration sections. Never commit `config_vectra.local.json`.
+### 2. Text Convenience Extensions
 
----
+When combined with an implementation of `IEmbeddingProvider` (e.g. connected to InstantAIGate or local ONNX runtimes):
 
-## InstantAIGate Integration
+```csharp
+using Instancium.Vectra.Extensions;
 
-Vectra consumes the **existing** `InstantAIGate.Core` NuGet package (pinned at `1.3.1`) as the single source of truth for the wire contract. No mirror DTOs, no custom interfaces.
+IEmbeddingProvider embedder = GetMyEmbeddingProvider();
 
-### Contract Surface Used
+// Store text directly (generates embedding + persists payload)
+await collection.AddTextAsync(embedder, "Type K thermocouple documentation...", payload: "Full Doc #104");
 
-| InstantAIGate.Core Type | Usage |
-|---|---|
-| `IInferenceEngine` | Implemented by `InstantAIGateEmbeddingAdapter` (embedding-only subset) |
-| `EmbeddingRequest` / `EmbeddingResponse` | Canonical embedding DTOs |
-| `ChatMessage` / `SessionTokenDelta` | Chat streaming DTOs |
-| `GatewayStatusDetails` / `GatewayOperationalStatus` | Readiness probing |
-| `NativeModelDetails` | Dimension and context size introspection |
-| `ContextOverflowException` / `QueueFullException` | Error mapping targets |
-
-### Wire Protocol (per client-integration-guide v1.4)
-
-**Embedding flow:**
-1. `GetGatewayStatus` → assert `Ready`
-2. `GetEmbeddingDimensionAsync(repoId)` → validate dimension
-3. `GenerateEmbeddingsAsync(repoId, request)` → parallel batch with backoff
-
-**Chat flow:**
-1. `GetGatewayStatus` → assert `Ready`
-2. `JoinSession(sessionId, repoId)`
-3. `SendPromptDelta(sessionId, message)` → stream `ReceiveTokenDelta`
-4. `DestroySession(sessionId)` in `finally`
-
-### Error Handling
-
-| Gateway Condition | Vectra Behavior |
-|---|---|
-| `QueueFullException` (429) | Exponential backoff retry (up to `MaxRetryAttempts`) |
-| `ContextOverflowException` | `VectraException` with chunk-size reduction guidance |
-| Model draining (503) | `VectraException` with retry-later message |
-| Gateway not `Ready` | `VectraException` before any indexing/chat attempt |
-| `TokenCount > ContextSize` | Client-side rejection in adapter |
-
----
-
-## Testing
-
-### Test Projects
-
-| Project | Scope |
-|---|---|
-| `Tests.Unit` | Chunking invariants, store upsert/replace, search correctness, adapter error mapping, RAG prompt construction, pipeline orchestration (mocked contracts) |
-| `Tests.Integration` | Live gateway embedding generation, 20-page pipeline e2e, gold-query retrieval, chat RAG streaming, CLI e2e with stub engine |
-| `Tests.Arch` | Reflection-based layer dependency enforcement |
-
-### Running Tests
-
-```bash
-# Unit + Arch (no gateway required)
-dotnet test tests/Instancium.Vectra.Tests.Unit
-dotnet test tests/Instancium.Vectra.Tests.Arch
-
-# Integration (skips gracefully if gateway is offline)
-dotnet test tests/Instancium.Vectra.Tests.Integration
-
-# Force integration tests to fail instead of skip
-VECTRA_REQUIRE_GATEWAY=1 dotnet test tests/Instancium.Vectra.Tests.Integration
+// Search by raw query string
+var hits = await collection.SearchTextAsync(embedder, "thermocouple Seebeck effect", new SearchOptions(TopK: 5));
 ```
 
-### Gold Query Validation
+## Ecosystem Integration
 
-The bench suite (`IndexingPipelineBenchTests`) indexes 100 pages of the test corpus and validates:
+Vectra acts as the embedded retrieval engine for the Instancium local-first AI stack:
 
-- **Top-3 hit-rate ≥ 0.8** against `tests/assets/gold/queries.json` (15 queries with known page ranges)
-- **p95 search latency ≤ 20 ms** (in-process SIMD search only)
-- **Determinism:** repeated searches return identical chunk IDs and scores
-
-Results are written to `artifacts/bench-report.md`.
-
----
-
-## Benchmarking
-
-```bash
-dotnet run --project src/Instancium.Vectra.Cli -- bench ./corpus/book.pdf 7
+```text
+┌────────────────────────────────────────────────────────┐
+│            Instancium Lens (Desktop UI / App)          │
+│         [Ingestion, Chunking, Document Workspace]      │
+└───────────────┬────────────────────────┬───────────────┘
+                │                        │
+         Embed / Infer                   │ Vectors & Payloads
+                ▼                        ▼
+┌───────────────────────────────┐ ┌───────────────────────────────┐
+│        InstantAIGate          │ │       Instancium Vectra       │
+│  [Local LLM & Embedding GW]   │ │   [Embedded Vector Database]  │
+│  (Qwen / Vulkan / llama.cpp)  │ │   (.NET 10 / SIMD / Disk WAL) │
+└───────────────────────────────┘ └───────────────────────────────┘
 ```
 
-The bench command:
-1. Probes total page count via the extractor
-2. For each window (20 → 50 → 100 pages): indexes, embeds 5 fixed queries, runs N+1 search rounds
-3. Reports: index time, chunks/sec, search p95
-4. Writes markdown report to `artifacts/bench-report.md`
+## Open Core & Enterprise Scaling
 
----
+Instancium Vectra is open-source and free for commercial and non-commercial use under the **Apache-2.0** license.
 
-## Tech Stack
+### Managed SIMD vs. Native Enterprise Engine
 
-| Component | Technology |
-|---|---|
-| Runtime | .NET 10, C# latest, `#nullable enable` |
-| PDF Extraction | PdfPig (UglyToad.PdfPig 0.1.16) |
-| Vector Math | `System.Numerics.Vector<T>` (SIMD) |
-| Transport | SignalR Client 10.0.14 (Infrastructure layer only) |
-| Contracts | InstantAIGate.Core 1.3.1 (NuGet) |
-| DI | Microsoft.Extensions.DependencyInjection |
-| Configuration | Microsoft.Extensions.Configuration (JSON + env) |
-| Testing | xUnit 2.9.3, coverlet |
-| Architecture Tests | Reflection-based assembly reference validation |
+* **Managed Engine (Default, Open Source):** Employs hardware-accelerated .NET intrinsics (`Vector256<float>` / `Vector512<float>`) and zero-allocation memory spans. Provides sub-millisecond p95 latency for tens of thousands of vectors.
+
+Data is stored as contiguous binary segments optimized for direct memory mapping (mmap). This eliminates deserialization overhead, enables zero-copy reads, and keeps disk files fully portable across different runtimes without migration.
+
+```csharp
+options.Kernel = KernelProvider.Native; // Zero schema changes. Zero re-indexing.
+```
+
+## Roadmap
+
+* **Graph-Based Indexing (HNSW):** Complement brute-force SIMD search with approximate nearest neighbor graph exploration for multi-million vector collections.
+* **Quantization Pipeline:** In-engine scalar (SQ8) and binary quantization for reduced RAM usage.
+* **Future Native Acceleration:** Optional C++ native compute backend (`Instancium.Vectra.Native`) for high-throughput enterprise workloads requiring specialized AVX-512/NUMA parallelism, without modifying public APIs or storage formats.
+
+### ⚠️ Project Status & R&D Disclaimer
+
+**Instancium.Vectra** is an active **R&D initiative and core infrastructure component** developed by [Instancium](https://instancium.com), an independent research and development laboratory.
+
+* **Production-Proven Foundation:** VVectra actively powers the local retrieval and knowledge layer across Instancium's own products, including [Instancium Lens](https://github.com/Instancium/Lens).
+
+
+* **Stabilization Track (1.x):** The current `1.1.x` series serves as an embedded validation track, refined against real-world workloads alongside [InstantAIGate](https://github.com/Instancium/instant-ai-gate).
+
+
+* **Ecosystem Convergence (2.0):** While the storage engine and execution kernels are production-tested daily, public API surfaces remain subject to clean architectural refinement until the unified **v2.0.0** ecosystem release.
 
 
 ## License
-Copyright (c) 2026 Instancium™ (https://instancium.com). All rights reserved.
 
-### Source Code License
-This project's source code is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE.txt) file for the full text.
+This project is licensed under the [Apache License, Version 2.0](LICENSE.txt).
 
-### Third-Party Dependencies
-For a comprehensive list of dependencies, models, and their respective licenses, please refer to the [Third-Party Notices & Licenses](THIRD-PARTY-NOTICES.md) document.
-
-### Branding & Trademark
-The "InstantAIGate" name, logos, and branding assets (in the `media` directory) are the exclusive property of Instancium and are licensed under the [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license. They may be used solely to refer to this original project without modification or commercial implication.
+Copyright (c) 2026 Instancium. All rights reserved.
