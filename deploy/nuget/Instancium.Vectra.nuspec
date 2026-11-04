@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+	<metadata>
+		<id>Instancium.Vectra</id>
+		<version>$version$</version>
+		<authors>Oleg Bruev, Instancium</authors>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<license type="file">LICENSE.txt</license>
+		<readme>README.md</readme>
+		<description>Clean, zero-dependency, in-process vector database for .NET 10. Features memory-mapped SIMD search, MVCC, and segment-based storage.</description>
+		<tags>vector database search rag in-process simd vectra</tags>
+		<repository type="git" url="https://github.com/instancium/vectra" />
+
+		<dependencies>
+			<group targetFramework="net10.0" />
+		</dependencies>
+	</metadata>
+	<files>
+		<!-- Core -->
+		<file src="..\..\src\Instancium.Vectra.Core\bin\Release\net10.0\Instancium.Vectra.Core.dll" target="lib\net10.0\" />
+		<file src="..\..\src\Instancium.Vectra.Core\bin\Release\net10.0\Instancium.Vectra.Core.xml" target="lib\net10.0\" />
+		<!-- Search -->
+		<file src="..\..\src\Instancium.Vectra.Search\bin\Release\net10.0\Instancium.Vectra.Search.dll" target="lib\net10.0\" />
+		<file src="..\..\src\Instancium.Vectra.Search\bin\Release\net10.0\Instancium.Vectra.Search.xml" target="lib\net10.0\" />
+		<!-- Storage -->
+		<file src="..\..\src\Instancium.Vectra.Storage\bin\Release\net10.0\Instancium.Vectra.Storage.dll" target="lib\net10.0\" />
+		<file src="..\..\src\Instancium.Vectra.Storage\bin\Release\net10.0\Instancium.Vectra.Storage.xml" target="lib\net10.0\" />
+
+		<!-- Meta -->
+		<file src="..\..\README.md" target="\" />
+		<file src="..\..\LICENSE.txt" target="\" />
+	</files>
+</package>
