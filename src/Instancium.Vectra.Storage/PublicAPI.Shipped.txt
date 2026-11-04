@@ -1,1 +1,64 @@
 #nullable enable
+const Instancium.Vectra.Storage.Disk.IndexArtifactNames.ChunkMap = "chunk.map.json" -> string!
+const Instancium.Vectra.Storage.Disk.IndexArtifactNames.Chunks = "chunks.bin" -> string!
+const Instancium.Vectra.Storage.Disk.IndexArtifactNames.Manifest = "manifest.json" -> string!
+const Instancium.Vectra.Storage.Disk.IndexArtifactNames.Offsets = "offsets.bin" -> string!
+const Instancium.Vectra.Storage.Disk.IndexArtifactNames.Vectors = "vectors.bin" -> string!
+const Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.IndexFolderName = "index" -> string!
+const Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.InstanciumFolderName = ".instancium" -> string!
+const Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.ProductFolderName = "vectra" -> string!
+Instancium.Vectra.Storage.DependencyInjection.ServiceCollectionExtensions
+Instancium.Vectra.Storage.Disk.DiskChunkTextReader
+Instancium.Vectra.Storage.Disk.DiskChunkTextReader.DiskChunkTextReader(string! indexDirectory) -> void
+Instancium.Vectra.Storage.Disk.DiskChunkTextReader.ReadAsync(Instancium.Vectra.Core.Models.ChunkTextRange! range, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Instancium.Vectra.Storage.Disk.DiskChunkTextReader.ReadBatchAsync(System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkTextRange!>! ranges, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<string!>!>!
+Instancium.Vectra.Storage.Disk.DiskIndexReader
+Instancium.Vectra.Storage.Disk.DiskIndexReader.DiskIndexReader() -> void
+Instancium.Vectra.Storage.Disk.DiskIndexReader.ReadChunkMapAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkMapEntry!>!>!
+Instancium.Vectra.Storage.Disk.DiskIndexReader.ReadChunkTextAsync(string! indexDirectory, long offset, int length, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Instancium.Vectra.Storage.Disk.DiskIndexReader.ReadManifestAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Instancium.Vectra.Core.Models.DiskIndexManifest!>!
+Instancium.Vectra.Storage.Disk.DiskIndexReader.ReadVectorsAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.ReadOnlyMemory<float>>!
+Instancium.Vectra.Storage.Disk.DiskIndexWriter
+Instancium.Vectra.Storage.Disk.DiskIndexWriter.DiskIndexWriter() -> void
+Instancium.Vectra.Storage.Disk.DiskIndexWriter.WriteAsync(Instancium.Vectra.Core.Models.IndexWriteRequest! request, string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Instancium.Vectra.Storage.Disk.IndexArtifactNames
+Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver
+Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.EnsureDirectoryStructure(string! indexDirectory) -> void
+Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.InstanciumDirectoryResolver() -> void
+Instancium.Vectra.Storage.Disk.InstanciumDirectoryResolver.ResolveIndexDirectory(string! rootPath, string? explicitIndexDir = null) -> string!
+Instancium.Vectra.Storage.InMemoryVectorStore
+Instancium.Vectra.Storage.InMemoryVectorStore.Clear() -> void
+Instancium.Vectra.Storage.InMemoryVectorStore.Count.get -> int
+Instancium.Vectra.Storage.InMemoryVectorStore.CreateSnapshot(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.IVectraSnapshot!
+Instancium.Vectra.Storage.InMemoryVectorStore.Dimension.get -> int
+Instancium.Vectra.Storage.InMemoryVectorStore.GetMetadata() -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkMetadata!>!
+Instancium.Vectra.Storage.InMemoryVectorStore.GetPayload(long chunkId) -> string?
+Instancium.Vectra.Storage.InMemoryVectorStore.GetVectorsSpan() -> System.ReadOnlySpan<float>
+Instancium.Vectra.Storage.InMemoryVectorStore.InMemoryVectorStore() -> void
+Instancium.Vectra.Storage.InMemoryVectorStore.Remove(long chunkId) -> bool
+Instancium.Vectra.Storage.InMemoryVectorStore.Upsert(long chunkId, long fileId, int pageNumber, string? snippet, System.ReadOnlyMemory<float> vector) -> void
+Instancium.Vectra.Storage.InMemoryVectraSnapshot
+
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.Dimension.get -> int
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.Dispose() -> void
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.GetVector(long slot) -> System.ReadOnlySpan<float>
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.GetVectorId(long slot) -> long
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.InMemoryVectraSnapshot(float[]! vectors, long[]! vectorIds, int dimension, Instancium.Vectra.Core.Models.SimilarityMetric metric) -> void
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Storage.InMemoryVectraSnapshot.VectorCount.get -> long
+Instancium.Vectra.Storage.Session.InMemoryChunkMap
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.Count.get -> int
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.Entries.get -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkMapEntry!>!
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.Get(long chunkId) -> Instancium.Vectra.Core.Models.ChunkMapEntry!
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.GetChunkIdsByFile(long fileId) -> System.Collections.Generic.IReadOnlyList<long>!
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.InMemoryChunkMap(System.Collections.Generic.IEnumerable<Instancium.Vectra.Core.Models.ChunkMapEntry!>! entries) -> void
+Instancium.Vectra.Storage.Session.InMemoryChunkMap.TryGet(long chunkId, out Instancium.Vectra.Core.Models.ChunkMapEntry? entry) -> bool
+Instancium.Vectra.Storage.Session.VectraIndexSession
+Instancium.Vectra.Storage.Session.VectraIndexSession.ChunkMap.get -> Instancium.Vectra.Core.Contracts.IChunkMap!
+Instancium.Vectra.Storage.Session.VectraIndexSession.GetChunkTextAsync(long chunkId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Instancium.Vectra.Storage.Session.VectraIndexSession.Manifest.get -> Instancium.Vectra.Core.Models.DiskIndexManifest!
+Instancium.Vectra.Storage.Session.VectraIndexSession.OpenAsync(string! indexDirectory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Instancium.Vectra.Storage.Session.VectraIndexSession.VectorStore.get -> Instancium.Vectra.Core.Contracts.IVectorStore!
+Instancium.Vectra.Storage.Session.VectraIndexSession.VectraIndexSession(Instancium.Vectra.Core.Contracts.IIndexReader! reader, Instancium.Vectra.Core.Contracts.IVectorStore! vectorStore, int? expectedDimension = null, string? expectedModelId = null) -> void
+static Instancium.Vectra.Storage.DependencyInjection.ServiceCollectionExtensions.AddVectraDiskIndex(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static readonly Instancium.Vectra.Storage.Disk.IndexArtifactNames.All -> System.Collections.Generic.IReadOnlyList<string!>!
