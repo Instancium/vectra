@@ -21,7 +21,7 @@ foreach ($projectPath in $projects) {
     $unshipped = Join-Path $directory 'PublicAPI.Unshipped.txt'
     Write-Host ('=== ' + (Split-Path -Leaf $projectPath) + ' ===')
 
-    $output = & dotnet build $projectPath -v:m -nologo -p:BuildProjectReferences=false 2>&1 | Out-String
+   $output = & dotnet build $projectPath --no-incremental -v:m -nologo -p:BuildProjectReferences=false 2>&1 | Out-String
 
     $added = @()
     $removed = @()
