@@ -1,1 +1,6 @@
 #nullable enable
+*REMOVED*Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.Create(Instancium.Vectra.Core.Models.SimilarityMetric, Instancium.Vectra.Core.Models.KernelProvider, System.Func<Instancium.Vectra.Core.Models.SimilarityMetric, Instancium.Vectra.Core.Contracts.ISimilarityKernel>?) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel
+*REMOVED*Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.CreateManaged(Instancium.Vectra.Core.Models.SimilarityMetric) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel
+*REMOVED*static Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.Create(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel!
+static Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.Create(Instancium.Vectra.Core.Models.SimilarityMetric metric, Instancium.Vectra.Core.Models.KernelProvider provider = Instancium.Vectra.Core.Models.KernelProvider.Managed, System.Func<Instancium.Vectra.Core.Models.SimilarityMetric, Instancium.Vectra.Core.Contracts.ISimilarityKernel!>? customResolver = null) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel!
+static Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.CreateManaged(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel!

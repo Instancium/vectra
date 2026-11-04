@@ -158,7 +158,14 @@ internal sealed class VectraCollection : IVectraCollection
         }
 
         IVectraSnapshot snapshot = _store.CreateSnapshot(_options.Metric);
-        ISearchKernel kernel = new BruteForceSearchKernel(SimilarityKernelFactory.Create(_options.Metric));
+
+        // P8 Seam: Resolves managed SIMD or native external kernel via VectraOptions
+        ISimilarityKernel similarityKernel = SimilarityKernelFactory.Create(
+            _options.Metric,
+            _globalOptions.Kernel,
+            _globalOptions.CustomKernelResolver);
+
+        ISearchKernel kernel = new BruteForceSearchKernel(similarityKernel);
 
         var normalizedQuery = query;
         if (_options.Metric == SimilarityMetric.Cosine)

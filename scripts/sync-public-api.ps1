@@ -1,7 +1,5 @@
 # Syncs PublicAPI.Unshipped.txt for the v2 engine projects (Core, Search, Storage).
-# New or changed public symbols are added plainly; symbols that exist in the v1 snapshot
-# (PublicAPI.Shipped.txt) but no longer exist in source are acknowledged with *REMOVED*.
-# Usage: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sync-public-api.ps1
+# Fixes the overwrite bug by merging new symbols with existing file contents.
 $ErrorActionPreference = 'Continue'
 $repoRoot = (Get-Item $PSScriptRoot).Parent.FullName
 $newLine = [Environment]::NewLine
@@ -19,9 +17,16 @@ $projects = @(
 foreach ($projectPath in $projects) {
     $directory = Split-Path -Parent $projectPath
     $unshipped = Join-Path $directory 'PublicAPI.Unshipped.txt'
-    Write-Host ('=== ' + (Split-Path -Leaf $projectPath) + ' ===')
+    Write-Host ("=== " + (Split-Path -Leaf $projectPath) + " ===")
 
-   $output = & dotnet build $projectPath --no-incremental -v:m -nologo -p:BuildProjectReferences=false 2>&1 | Out-String
+    # 1. Считываем текущее содержимое файла (сохраняем историю)
+    $existing = @()
+    if (Test-Path $unshipped) {
+        $existing = Get-Content $unshipped | Where-Object { $_ -notmatch '^\s*$' -and $_ -ne $header }
+    }
+
+    # 2. Собираем дельту (новые RS0016 / RS0017)
+    $output = & dotnet build $projectPath --no-incremental -v:m -nologo -p:BuildProjectReferences=false 2>&1 | Out-String
 
     $added = @()
     $removed = @()
@@ -49,14 +54,31 @@ foreach ($projectPath in $projects) {
     $added = @($added | Sort-Object -Unique)
     $removed = @($removed | Sort-Object -Unique)
 
-    $lines = @()
-    $lines += $added
-    foreach ($symbol in $removed) { $lines += ('*REMOVED*' + $symbol) }
+    # 3. Объединяем дельту с существующим файлом
+    $finalSet = New-Object System.Collections.Generic.HashSet[string]
+    
+    foreach ($line in $existing) {
+        # Если символ удален в этом прогоне, не переносим его как активный
+        if ($removed -notcontains $line) {
+            $null = $finalSet.Add($line)
+        }
+    }
 
+    foreach ($sym in $added) {
+        $null = $finalSet.Add($sym)
+    }
+
+    foreach ($sym in $removed) {
+        $null = $finalSet.Add("*REMOVED*" + $sym)
+    }
+
+    # 4. Записываем объединенный результат обратно
+    $sortedLines = $finalSet | Sort-Object
     $content = $header + $newLine
-    if ($lines.Count -gt 0) { $content += ($lines -join $newLine) + $newLine }
+    if ($sortedLines.Count -gt 0) { $content += ($sortedLines -join $newLine) + $newLine }
+    
     [System.IO.File]::WriteAllText($unshipped, $content)
-    Write-Host ('  added: ' + $added.Count + ', removed: ' + $removed.Count)
+    Write-Host ("  added: " + $added.Count + ", removed: " + $removed.Count + ", total lines: " + $sortedLines.Count)
 }
 
 Write-Host '=== verify: full rebuild, expect zero RS0016/RS0017 ==='
