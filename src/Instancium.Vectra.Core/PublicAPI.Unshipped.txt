@@ -33,13 +33,14 @@ Instancium.Vectra.Core.Contracts.ISimilarityKernel.Metric.get -> Instancium.Vect
 Instancium.Vectra.Core.Contracts.ISimilarityKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
 Instancium.Vectra.Core.Contracts.IVectorSearchEngine
 Instancium.Vectra.Core.Contracts.IVectorSearchEngine.SearchAsync(Instancium.Vectra.Core.Models.SearchQuery! query, Instancium.Vectra.Core.Models.SearchOptions! options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
-
 Instancium.Vectra.Core.Contracts.IVectorStore
 Instancium.Vectra.Core.Contracts.IVectorStore.Count.get -> int
 Instancium.Vectra.Core.Contracts.IVectorStore.CreateSnapshot(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.IVectraSnapshot!
 Instancium.Vectra.Core.Contracts.IVectorStore.Dimension.get -> int
 Instancium.Vectra.Core.Contracts.IVectorStore.GetMetadata() -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkMetadata!>!
+Instancium.Vectra.Core.Contracts.IVectorStore.GetPayload(long chunkId) -> string?
 Instancium.Vectra.Core.Contracts.IVectorStore.GetVectorsSpan() -> System.ReadOnlySpan<float>
+Instancium.Vectra.Core.Contracts.IVectorStore.Remove(long chunkId) -> bool
 Instancium.Vectra.Core.Contracts.IVectorStore.Upsert(long chunkId, long fileId, int pageNumber, string? snippet, System.ReadOnlyMemory<float> vector) -> void
 Instancium.Vectra.Core.Contracts.IVectraCollection
 Instancium.Vectra.Core.Contracts.IVectraCollection.AddAsync(Instancium.Vectra.Core.Models.VectorEntry! entry, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<long>
@@ -69,10 +70,18 @@ Instancium.Vectra.Core.Exceptions.IndexCorruptedException
 Instancium.Vectra.Core.Exceptions.IndexCorruptedException.IndexCorruptedException() -> void
 Instancium.Vectra.Core.Exceptions.IndexCorruptedException.IndexCorruptedException(string! message) -> void
 Instancium.Vectra.Core.Exceptions.IndexCorruptedException.IndexCorruptedException(string! message, System.Exception! innerException) -> void
+Instancium.Vectra.Core.Exceptions.VectraDimensionMismatchException
+Instancium.Vectra.Core.Exceptions.VectraDimensionMismatchException.Actual.get -> int
+Instancium.Vectra.Core.Exceptions.VectraDimensionMismatchException.Expected.get -> int
+Instancium.Vectra.Core.Exceptions.VectraDimensionMismatchException.VectraDimensionMismatchException(int expected, int actual) -> void
 Instancium.Vectra.Core.Exceptions.VectraException
 Instancium.Vectra.Core.Exceptions.VectraException.VectraException() -> void
 Instancium.Vectra.Core.Exceptions.VectraException.VectraException(string! message) -> void
 Instancium.Vectra.Core.Exceptions.VectraException.VectraException(string! message, System.Exception! innerException) -> void
+Instancium.Vectra.Core.Exceptions.VectraIncompatibleModelException
+Instancium.Vectra.Core.Exceptions.VectraIncompatibleModelException.ActualModelId.get -> string!
+Instancium.Vectra.Core.Exceptions.VectraIncompatibleModelException.ExpectedModelId.get -> string!
+Instancium.Vectra.Core.Exceptions.VectraIncompatibleModelException.VectraIncompatibleModelException(string! expectedModelId, string! actualModelId) -> void
 Instancium.Vectra.Core.Models.ChunkMapEntry
 Instancium.Vectra.Core.Models.ChunkMapEntry.<Clone>$() -> Instancium.Vectra.Core.Models.ChunkMapEntry!
 Instancium.Vectra.Core.Models.ChunkMapEntry.ChunkId.get -> long
@@ -145,6 +154,9 @@ Instancium.Vectra.Core.Models.IndexWriteRequest.Chunks.get -> System.Collections
 Instancium.Vectra.Core.Models.IndexWriteRequest.Equals(Instancium.Vectra.Core.Models.IndexWriteRequest? other) -> bool
 Instancium.Vectra.Core.Models.IndexWriteRequest.IndexWriteRequest(Instancium.Vectra.Core.Models.DiskIndexManifest! manifest, System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkRecord!>! chunks) -> void
 Instancium.Vectra.Core.Models.IndexWriteRequest.Manifest.get -> Instancium.Vectra.Core.Models.DiskIndexManifest!
+Instancium.Vectra.Core.Models.KernelProvider
+Instancium.Vectra.Core.Models.KernelProvider.Managed = 1 -> Instancium.Vectra.Core.Models.KernelProvider
+Instancium.Vectra.Core.Models.KernelProvider.Native = 2 -> Instancium.Vectra.Core.Models.KernelProvider
 Instancium.Vectra.Core.Models.QuantizationMode
 Instancium.Vectra.Core.Models.QuantizationMode.Binary = 2 -> Instancium.Vectra.Core.Models.QuantizationMode
 Instancium.Vectra.Core.Models.QuantizationMode.None = 0 -> Instancium.Vectra.Core.Models.QuantizationMode
@@ -180,6 +192,18 @@ Instancium.Vectra.Core.Models.SimilarityMetric
 Instancium.Vectra.Core.Models.SimilarityMetric.Cosine = 0 -> Instancium.Vectra.Core.Models.SimilarityMetric
 Instancium.Vectra.Core.Models.SimilarityMetric.DotProduct = 1 -> Instancium.Vectra.Core.Models.SimilarityMetric
 Instancium.Vectra.Core.Models.SimilarityMetric.Euclidean = 2 -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.VectraOptions
+Instancium.Vectra.Core.Models.VectraOptions.BaseDirectory.get -> string!
+Instancium.Vectra.Core.Models.VectraOptions.BaseDirectory.set -> void
+Instancium.Vectra.Core.Models.VectraOptions.CompactionSegmentThreshold.get -> int
+Instancium.Vectra.Core.Models.VectraOptions.CompactionSegmentThreshold.set -> void
+Instancium.Vectra.Core.Models.VectraOptions.DefaultMetric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
+Instancium.Vectra.Core.Models.VectraOptions.DefaultMetric.set -> void
+Instancium.Vectra.Core.Models.VectraOptions.Kernel.get -> Instancium.Vectra.Core.Models.KernelProvider
+Instancium.Vectra.Core.Models.VectraOptions.Kernel.set -> void
+Instancium.Vectra.Core.Models.VectraOptions.ValidateChecksumsOnOpen.get -> bool
+Instancium.Vectra.Core.Models.VectraOptions.ValidateChecksumsOnOpen.set -> void
+Instancium.Vectra.Core.Models.VectraOptions.VectraOptions() -> void
 Instancium.Vectra.Core.Models.VectorEntry
 Instancium.Vectra.Core.Models.VectorEntry.<Clone>$() -> Instancium.Vectra.Core.Models.VectorEntry!
 Instancium.Vectra.Core.Models.VectorEntry.Equals(Instancium.Vectra.Core.Models.VectorEntry? other) -> bool

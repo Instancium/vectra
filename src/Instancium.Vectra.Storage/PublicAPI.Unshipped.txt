@@ -32,10 +32,13 @@ Instancium.Vectra.Storage.InMemoryVectorStore.Count.get -> int
 Instancium.Vectra.Storage.InMemoryVectorStore.CreateSnapshot(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.IVectraSnapshot!
 Instancium.Vectra.Storage.InMemoryVectorStore.Dimension.get -> int
 Instancium.Vectra.Storage.InMemoryVectorStore.GetMetadata() -> System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.ChunkMetadata!>!
+Instancium.Vectra.Storage.InMemoryVectorStore.GetPayload(long chunkId) -> string?
 Instancium.Vectra.Storage.InMemoryVectorStore.GetVectorsSpan() -> System.ReadOnlySpan<float>
 Instancium.Vectra.Storage.InMemoryVectorStore.InMemoryVectorStore() -> void
+Instancium.Vectra.Storage.InMemoryVectorStore.Remove(long chunkId) -> bool
 Instancium.Vectra.Storage.InMemoryVectorStore.Upsert(long chunkId, long fileId, int pageNumber, string? snippet, System.ReadOnlyMemory<float> vector) -> void
 Instancium.Vectra.Storage.InMemoryVectraSnapshot
+
 Instancium.Vectra.Storage.InMemoryVectraSnapshot.Dimension.get -> int
 Instancium.Vectra.Storage.InMemoryVectraSnapshot.Dispose() -> void
 Instancium.Vectra.Storage.InMemoryVectraSnapshot.GetVector(long slot) -> System.ReadOnlySpan<float>
