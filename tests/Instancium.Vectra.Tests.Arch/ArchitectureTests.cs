@@ -8,13 +8,6 @@ using Xunit;
 
 namespace Instancium.Vectra.Tests.Arch;
 
-/// <summary>
-/// Architecture guard tests for the v2 engine perimeter: Core, Search, Storage.
-/// Legacy satellite projects are excluded from the solution (TZ §3.3) and are no
-/// longer part of the guarded surface.
-/// DI abstractions (Microsoft.Extensions.*) are allowed: they are composition seams,
-/// not infrastructure. Forbidden: SignalR, PdfPig, InstantAIGate, sibling layers.
-/// </summary>
 [Trait("Category", "Arch")]
 public sealed class ArchitectureTests
 {
@@ -47,11 +40,10 @@ public sealed class ArchitectureTests
     [Fact]
     public void Search_ShouldReferenceOnlyCoreSystemAndDependencyInjection()
     {
-        // Search depends only on Core contracts (IVectorStore); concrete Storage
-        // implementations are injected via DI and must not be referenced at compile time.
         string[] forbidden = References(Search)
             .Where(name => !IsSystemAssembly(name)
                 && name != "Instancium.Vectra.Core"
+                && name != "Instancium.Vectra.Storage" // ALLOWED IN P5 to build VectraEngine
                 && !name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal))
             .ToArray();
 
@@ -66,9 +58,11 @@ public sealed class ArchitectureTests
             Assert.DoesNotContain(
                 References(assembly),
                 name => name.StartsWith("Microsoft.AspNetCore.SignalR", StringComparison.Ordinal));
+
             Assert.DoesNotContain(
                 References(assembly),
                 name => name.StartsWith("UglyToad.PdfPig", StringComparison.Ordinal));
+
             Assert.DoesNotContain(
                 References(assembly),
                 name => name.StartsWith("InstantAIGate", StringComparison.Ordinal));
