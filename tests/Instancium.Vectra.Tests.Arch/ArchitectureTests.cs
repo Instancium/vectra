@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
 using Xunit;
@@ -67,6 +68,33 @@ public sealed class ArchitectureTests
                 References(assembly),
                 name => name.StartsWith("InstantAIGate", StringComparison.Ordinal));
         }
+    }
+
+    [Fact]
+    public void VectraCoreAndSearch_ShouldNotReferenceNativeAssembliesDirectly()
+    {
+        // ARCHITECTURAL INVARIANT (TZ §3.2, §7 P8):
+        // Core and Search must remain 100% pure managed assemblies.
+        // Native acceleration MUST be loaded dynamically or via external pluggable packages.
+        foreach (Assembly assembly in new[] { Core, Storage, Search })
+        {
+            Assert.DoesNotContain(
+                References(assembly),
+                name => name.Contains(".Native", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public void VectraOptions_MustExposeExtensibilityPointForNativeKernels()
+    {
+        // ARCHITECTURAL INVARIANT:
+        // This reflection test prevents AI assistants or future maintainers from accidentally removing
+        // or renaming the CustomKernelResolver property during refactoring.
+        Type optionsType = typeof(VectraOptions);
+        PropertyInfo? property = optionsType.GetProperty(nameof(VectraOptions.CustomKernelResolver));
+
+        Assert.NotNull(property);
+        Assert.Equal(typeof(Func<SimilarityMetric, ISimilarityKernel>), property.PropertyType);
     }
 
     private static bool IsSystemAssembly(string name) =>
