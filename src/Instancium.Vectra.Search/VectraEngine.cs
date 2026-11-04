@@ -39,7 +39,7 @@ internal sealed class VectraEngine : IVectraEngine
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(options);
 
-        return _collections.GetOrAdd(name, key =>
+        var collection = _collections.GetOrAdd(name, key =>
         {
             string indexDir = _resolver.ResolveIndexDirectory(_options.BaseDirectory, Path.Combine(_options.BaseDirectory, key));
 
@@ -76,6 +76,18 @@ internal sealed class VectraEngine : IVectraEngine
 
             return new VectraCollection(key, options, store, session, _writer, indexDir, _options);
         });
+
+        // Validate cached instance if it was returned by GetOrAdd
+        if (collection.Info.Dimension != options.Dimension)
+        {
+            throw new VectraDimensionMismatchException(options.Dimension, collection.Info.Dimension);
+        }
+        if (!string.Equals(collection.Info.ModelId, options.ModelId, StringComparison.Ordinal))
+        {
+            throw new VectraIncompatibleModelException(options.ModelId, collection.Info.ModelId);
+        }
+
+        return collection;
     }
 
     public async Task<IReadOnlyList<CollectionInfo>> ListCollectionsAsync(CancellationToken cancellationToken = default)
@@ -90,12 +102,13 @@ internal sealed class VectraEngine : IVectraEngine
 
         foreach (var dir in dirs)
         {
-            string manifestPath = Path.Combine(dir, IndexArtifactNames.Manifest);
+            string indexDir = _resolver.ResolveIndexDirectory(_options.BaseDirectory, dir);
+            string manifestPath = Path.Combine(indexDir, IndexArtifactNames.Manifest);
             if (File.Exists(manifestPath))
             {
                 try
                 {
-                    var manifest = await _reader.ReadManifestAsync(dir, cancellationToken).ConfigureAwait(false);
+                    var manifest = await _reader.ReadManifestAsync(indexDir, cancellationToken).ConfigureAwait(false);
                     results.Add(new CollectionInfo(
                         Path.GetFileName(dir), manifest.Dimension, _options.DefaultMetric,
                         manifest.ModelId, null, manifest.ChunkCount, manifest.Version));
@@ -114,10 +127,10 @@ internal sealed class VectraEngine : IVectraEngine
     {
         _collections.TryRemove(name, out _);
 
-        string indexDir = _resolver.ResolveIndexDirectory(_options.BaseDirectory, Path.Combine(_options.BaseDirectory, name));
-        if (Directory.Exists(indexDir))
+        string collectionRoot = Path.Combine(_options.BaseDirectory, name);
+        if (Directory.Exists(collectionRoot))
         {
-            Directory.Delete(indexDir, recursive: true);
+            Directory.Delete(collectionRoot, recursive: true);
         }
 
         return Task.CompletedTask;
