@@ -18,6 +18,8 @@ Instancium.Vectra.Search.Kernels.EuclideanKernel.EuclideanKernel() -> void
 Instancium.Vectra.Search.Kernels.EuclideanKernel.Metric.get -> Instancium.Vectra.Core.Models.SimilarityMetric
 Instancium.Vectra.Search.Kernels.EuclideanKernel.Score(System.ReadOnlySpan<float> query, System.ReadOnlySpan<float> candidate) -> float
 Instancium.Vectra.Search.Kernels.SimilarityKernelFactory
-Instancium.Vectra.Search.ServiceCollectionExtensions
 static Instancium.Vectra.Search.Kernels.SimilarityKernelFactory.Create(Instancium.Vectra.Core.Models.SimilarityMetric metric) -> Instancium.Vectra.Core.Contracts.ISimilarityKernel!
+Instancium.Vectra.Search.ServiceCollectionExtensions
 static Instancium.Vectra.Search.ServiceCollectionExtensions.AddVectraInMemorySearch(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+Instancium.Vectra.Search.VectraEngineFactory
+static Instancium.Vectra.Search.VectraEngineFactory.Create(Instancium.Vectra.Core.Models.VectraOptions! options) -> Instancium.Vectra.Core.Contracts.IVectraEngine!
