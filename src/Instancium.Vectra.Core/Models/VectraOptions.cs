@@ -1,8 +1,8 @@
 #nullable enable
 namespace Instancium.Vectra.Core.Models;
 
-using System;
 using Instancium.Vectra.Core.Contracts;
+using System;
 
 /// <summary>
 /// Global configuration for the vector engine.

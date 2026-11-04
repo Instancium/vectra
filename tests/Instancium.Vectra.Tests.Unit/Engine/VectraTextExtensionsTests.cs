@@ -1,16 +1,16 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Engine;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Core.Testing;
 using Instancium.Vectra.Search;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 [Trait("Category", "Unit")]

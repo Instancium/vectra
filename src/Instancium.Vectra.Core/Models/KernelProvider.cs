@@ -1,5 +1,3 @@
-using System;
-
 namespace Instancium.Vectra.Core.Models;
 
 /// <summary>

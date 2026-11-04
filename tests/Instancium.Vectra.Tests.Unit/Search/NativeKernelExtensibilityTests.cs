@@ -1,13 +1,13 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Search;
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Search.Kernels;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 
 /// <summary>

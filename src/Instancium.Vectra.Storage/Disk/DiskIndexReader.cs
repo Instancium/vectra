@@ -1,11 +1,11 @@
 namespace Instancium.Vectra.Storage.Disk;
 
-using System.Buffers.Binary;
-using System.Runtime.InteropServices;
-using System.Text;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
+using System.Buffers.Binary;
+using System.Runtime.InteropServices;
+using System.Text;
 
 /// <summary>
 /// Default <see cref="IIndexReader"/> implementation. Stateless and safe for concurrent use.

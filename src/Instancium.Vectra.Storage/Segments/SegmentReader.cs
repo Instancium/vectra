@@ -1,6 +1,8 @@
 #nullable enable
 namespace Instancium.Vectra.Storage.Segments;
 
+using Instancium.Vectra.Core.Exceptions;
+using Instancium.Vectra.Core.Models;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -11,8 +13,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Instancium.Vectra.Core.Exceptions;
-using Instancium.Vectra.Core.Models;
 
 /// <summary>
 /// Provides high-throughput read operations and cryptographic verification over v2 segments.

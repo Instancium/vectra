@@ -1,9 +1,9 @@
 namespace Instancium.Vectra.Search.Kernels;
 
-using System.Runtime.Intrinsics;
-using System.Runtime.Intrinsics.X86;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 /// <summary>
 /// SIMD-accelerated Euclidean (L2) distance kernel.

@@ -1,8 +1,8 @@
 namespace Instancium.Vectra.Storage.Session;
 
-using System.Diagnostics.CodeAnalysis;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
+using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// In-memory <see cref="IChunkMap"/> with a primary chunk-id index and a secondary file-id index.

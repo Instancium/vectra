@@ -1,7 +1,5 @@
 namespace Instancium.Vectra.Storage.Disk;
 
-using Instancium.Vectra.Core.Models;
-
 internal sealed record ManifestDto(
     int Version,
     int Dimension,

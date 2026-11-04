@@ -1,13 +1,13 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Engine;
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 
 [Trait("Category", "Unit")]
@@ -66,7 +66,7 @@ public sealed class VectraCollectionTests : IDisposable
     {
         var col = _engine.GetOrOpenCollection("dim_col", new CollectionOptions(4, SimilarityMetric.Cosine, "m1"));
 
-        await Assert.ThrowsAsync<VectraDimensionMismatchException>(async () => 
+        await Assert.ThrowsAsync<VectraDimensionMismatchException>(async () =>
             await col.AddAsync(new VectorEntry(null, new float[] { 1f, 2f }, "Err")));
     }
 

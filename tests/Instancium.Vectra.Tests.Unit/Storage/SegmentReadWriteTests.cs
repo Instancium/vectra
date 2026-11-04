@@ -1,15 +1,14 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Storage;
 
-using System;
-using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Storage.Disk;
 using Instancium.Vectra.Storage.Segments;
+using System;
+using System.IO;
+using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 using Xunit;
 
 [Trait("Category", "Unit")]

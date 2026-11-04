@@ -1,16 +1,16 @@
 #nullable enable
 namespace Instancium.Vectra.Search;
 
+using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Exceptions;
+using Instancium.Vectra.Core.Models;
+using Instancium.Vectra.Search.Kernels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Instancium.Vectra.Core.Contracts;
-using Instancium.Vectra.Core.Exceptions;
-using Instancium.Vectra.Core.Models;
-using Instancium.Vectra.Search.Kernels;
 
 internal sealed class VectraCollection : IVectraCollection
 {
@@ -273,7 +273,7 @@ internal sealed class VectraCollection : IVectraCollection
             chunkCount: _store.Count);
 
         var metadata = _store.GetMetadata();
-        float[] allVectors = _store.GetVectorsSpan().ToArray(); 
+        float[] allVectors = _store.GetVectorsSpan().ToArray();
         var chunks = new ChunkRecord[metadata.Count];
 
         for (int i = 0; i < metadata.Count; i++)

@@ -1,9 +1,9 @@
 namespace Instancium.Vectra.Storage.Disk;
 
-using System.Text;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
+using System.Text;
 
 /// <summary>
 /// Default <see cref="IChunkTextReader"/> implementation (TZ-2 stage 3).

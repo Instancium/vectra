@@ -1,8 +1,8 @@
 namespace Instancium.Vectra.Search;
 
-using System.Diagnostics;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
+using System.Diagnostics;
 
 /// <summary>
 /// Brute-force search kernel: scans all vectors in the snapshot and returns the top-K
