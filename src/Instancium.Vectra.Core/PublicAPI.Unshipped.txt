@@ -1,1 +1,11 @@
 #nullable enable
+Instancium.Vectra.Core.Contracts.VectraTextExtensions
+static Instancium.Vectra.Core.Contracts.VectraTextExtensions.AddTextAsync(this Instancium.Vectra.Core.Contracts.IVectraCollection! collection, Instancium.Vectra.Core.Contracts.IEmbeddingProvider! provider, string! text, string? payload = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<long>
+static Instancium.Vectra.Core.Contracts.VectraTextExtensions.SearchTextAsync(this Instancium.Vectra.Core.Contracts.IVectraCollection! collection, Instancium.Vectra.Core.Contracts.IEmbeddingProvider! provider, string! query, Instancium.Vectra.Core.Models.SearchOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Instancium.Vectra.Core.Models.VectorSearchHit!>!>!
+Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider
+const Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.DefaultDimension = 128 -> int
+const Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.DefaultModelId = "hashed-stub-embedding" -> string!
+Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.Dimension.get -> int
+Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.EmbedAsync(string! text, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<float>>
+Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.HashedStubEmbeddingProvider(int dimension = 128, string! modelId = "hashed-stub-embedding") -> void
+Instancium.Vectra.Core.Testing.HashedStubEmbeddingProvider.ModelId.get -> string!
