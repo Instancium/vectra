@@ -1,7 +1,7 @@
 namespace Instancium.Vectra.Core.Contracts;
 
-using System.Diagnostics.CodeAnalysis;
 using Instancium.Vectra.Core.Models;
+using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// Lookup structure over the loaded chunk map: chunk identity, source file, page,

@@ -1,10 +1,10 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Search;
 
-using System.Diagnostics;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
+using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
 

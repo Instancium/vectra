@@ -1,10 +1,10 @@
 #nullable enable
 namespace Instancium.Vectra.Search;
 
-using System.Diagnostics;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search.Kernels;
+using System.Diagnostics;
 
 /// <summary>
 /// In-memory vector search engine: thin facade over <see cref="ISearchKernel"/> with optional

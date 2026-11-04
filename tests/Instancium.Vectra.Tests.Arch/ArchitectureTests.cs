@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using Instancium.Vectra.Core.Contracts;
+﻿using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Search;
 using Instancium.Vectra.Storage;
+using System.Reflection;
 using Xunit;
 
 namespace Instancium.Vectra.Tests.Arch;

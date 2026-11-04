@@ -1,9 +1,9 @@
 #nullable enable
 namespace Instancium.Vectra.Search.Kernels;
 
-using System;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Models;
+using System;
 
 /// <summary>
 /// Factory and resolution seam for metric-specific similarity kernels.

@@ -1,10 +1,10 @@
 namespace Instancium.Vectra.Search.Kernels;
 
+using Instancium.Vectra.Core.Contracts;
+using Instancium.Vectra.Core.Models;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-using Instancium.Vectra.Core.Contracts;
-using Instancium.Vectra.Core.Models;
 
 /// <summary>
 /// SIMD-accelerated dot-product kernel using AVX2 when available, otherwise a scalar fallback.

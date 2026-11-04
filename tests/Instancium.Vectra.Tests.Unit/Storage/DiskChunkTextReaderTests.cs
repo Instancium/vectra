@@ -1,9 +1,9 @@
 namespace Instancium.Vectra.Tests.Unit.Storage;
 
-using System.Text;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Storage.Disk;
+using System.Text;
 using Xunit;
 
 [Trait("Category", "Unit")]

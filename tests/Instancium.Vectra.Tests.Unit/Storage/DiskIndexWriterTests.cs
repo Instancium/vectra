@@ -1,10 +1,10 @@
 #nullable enable
 namespace Instancium.Vectra.Tests.Unit.Storage;
 
-using System.Buffers.Binary;
-using System.Text;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Storage.Disk;
+using System.Buffers.Binary;
+using System.Text;
 using Xunit;
 
 [Trait("Category", "Unit")]

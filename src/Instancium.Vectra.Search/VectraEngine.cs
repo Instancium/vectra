@@ -1,18 +1,18 @@
 #nullable enable
 namespace Instancium.Vectra.Search;
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Instancium.Vectra.Core.Contracts;
 using Instancium.Vectra.Core.Exceptions;
 using Instancium.Vectra.Core.Models;
 using Instancium.Vectra.Storage;
 using Instancium.Vectra.Storage.Disk;
 using Instancium.Vectra.Storage.Session;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 internal sealed class VectraEngine : IVectraEngine
 {

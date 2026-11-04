@@ -1,11 +1,11 @@
 #nullable enable
 namespace Instancium.Vectra.Core.Contracts;
 
+using Instancium.Vectra.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Instancium.Vectra.Core.Models;
 
 /// <summary>
 /// High-level text extension methods over <see cref="IVectraCollection"/> and <see cref="IEmbeddingProvider"/>.

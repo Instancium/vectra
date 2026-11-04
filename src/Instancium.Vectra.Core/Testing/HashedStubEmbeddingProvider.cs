@@ -1,13 +1,13 @@
 #nullable enable
 namespace Instancium.Vectra.Core.Testing;
 
+using Instancium.Vectra.Core.Contracts;
 using System;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Instancium.Vectra.Core.Contracts;
 
 /// <summary>
 /// Deterministic in-process embedding provider utilizing SHA-256 hash derivation.
