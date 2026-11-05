@@ -31,9 +31,10 @@ Embedding AI search into desktop apps (such as [Instancium Lens](https://github.
    * Every similarity calculation (`Cosine`, `DotProduct`, `Euclidean`) is verified against a `ReferenceSimilarityKernel` (double-precision accumulation) with a strict relative error bound (`<= 1e-5`).
    * Tie-breaking is deterministic (ordered by `VectorScore` descending, then `VectorId` ascending).
 
-3. **v2 Segmented Storage & WAL:**
-   * Immutable disk segments (`.vec`, `.map`, `.pay`) designed for `MemoryMappedFile` zero-copy reads.
-   * Append-only Write-Ahead Logging (WAL) ensures atomic mutations without rewriting full indices on updates.
+3. **v1 Monolithic Disk Index:**
+   * Atomic full-rewrite of the index on each mutation via DiskIndexWriter.
+   * Suitable for desktop workloads with tens of thousands of vectors.
+   * v2 segmented storage with append-only WAL is the target architecture (see Roadmap).
 
 4. **Transparent Scoring:**
    * Raw hardware `VectorScore` is never mutated or obscured.
@@ -146,15 +147,20 @@ options.Kernel = KernelProvider.Native; // Zero schema changes. Zero re-indexing
 * **Quantization Pipeline:** In-engine scalar (SQ8) and binary quantization for reduced RAM usage.
 * **Future Native Acceleration:** Optional C++ native compute backend (`Instancium.Vectra.Native`) for high-throughput enterprise workloads requiring specialized AVX-512/NUMA parallelism, without modifying public APIs or storage formats.
 
-### ⚠️ Project Status & R&D Disclaimer
+* **v2 Segmented Storage & WAL (Target Architecture):**
+  - Append-only Write-Ahead Log for atomic mutations without full index rewrites.
+  - Immutable on-disk segments (`seg-NNNNNN.vec`, `.map`, `.pay`) with SHA-256 integrity.
+  - Memory-mapped zero-copy reads via `MemoryMappedFile`.
+  - Background compaction of sealed segments.
+  - Foundation primitives already in place: `SegmentWriter`, `SegmentReader`, `VectraManifest`.
+
+#### Project Status & R&D Disclaimer
 
 **Instancium.Vectra** is an active **R&D initiative and core infrastructure component** developed by [Instancium](https://instancium.com), an independent research and development laboratory.
 
 * **Production-Proven Foundation:** VVectra actively powers the local retrieval and knowledge layer across Instancium's own products, including [Instancium Lens](https://github.com/Instancium/Lens).
 
-
 * **Stabilization Track (1.x):** The current `1.1.x` series serves as an embedded validation track, refined against real-world workloads alongside [InstantAIGate](https://github.com/Instancium/instant-ai-gate).
-
 
 * **Ecosystem Convergence (2.0):** While the storage engine and execution kernels are production-tested daily, public API surfaces remain subject to clean architectural refinement until the unified **v2.0.0** ecosystem release.
 
